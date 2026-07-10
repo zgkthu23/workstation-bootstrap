@@ -1,0 +1,51 @@
+{
+  "_description": "Windows package manifest for winget. Phase 1: placeholder structure.",
+  "_note": "Packages are defined in manifests/windows.yaml. This file is a winget-specific export format for future use.",
+  "packages": {
+    "common": [
+      "Git.Git",
+      "Microsoft.VisualStudioCode",
+      "Microsoft.WindowsTerminal",
+      "Microsoft.PowerShell",
+      "7zip.7zip",
+      "Neovim.Neovim",
+      "OpenJS.NodeJS.LTS",
+      "Python.Python.3.12"
+    ],
+    "c-development": [
+      "Microsoft.VisualStudio.2022.Community",
+      "LLVM.LLVM",
+      "CMake.CMake",
+      "Ninja-build.Ninja"
+    ],
+    "python-development": [
+      "Python.Python.3.12",
+      "astral-sh.uv"
+    ],
+    "node-development": [
+      "OpenJS.NodeJS.LTS",
+      "pnpm.pnpm"
+    ],
+    "docker": [
+      "Docker.DockerDesktop"
+    ],
+    "office": [
+      "Microsoft.Office",
+      "TheDocumentFoundation.LibreOffice",
+      "Adobe.Acrobat.Reader.64-bit"
+    ],
+    "research": [
+      "MiKTeX.MiKTeX",
+      "Zotero.Zotero",
+      "draw.io"
+    ],
+    "optional": [
+      "VideoLAN.VLC",
+      "Spotify.Spotify",
+      "Notion.Notion",
+      "Discord.Discord",
+      "Valve.Steam",
+      "SlackTechnologies.Slack"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+# =============================================================================
+# Ubuntu-specific manifest
+# =============================================================================
+
+features:
+  c-development:
+    packages:
+      - gcc
+      - g++
+      - clang
+      - cmake
+      - ninja-build
+      - gdb
+      - valgrind
+      - lldb
+
+  python-development:
+    packages:
+      - python3-dev
+      - python3-venv
+      - python3-pip
+    # astral-sh/uv not in apt — install via curl script
+    manual:
+      - name: uv
+        url: https://docs.astral.sh/uv/getting-started/installation/
+        method: curl
+
+  node-development:
+    packages:
+      - nodejs
+      - npm
+    # pnpm not in apt
+    manual:
+      - name: pnpm
+        url: https://pnpm.io/installation
+        method: curl
+
+  docker:
+    packages:
+      - docker.io
+      - docker-compose-v2
+
+  research:
+    packages:
+      - texlive-full
+      - pandoc
+      - zotero-standalone
+      - r-base
+      - julia
+    manual:
+      - name: Zotero
+        url: https://www.zotero.org/download/
+
+  optional:
+    packages:
+      - vlc
+      - gimp
+      - inkscape
+      - thunderbird
+      - libreoffice

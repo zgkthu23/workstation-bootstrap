@@ -1,0 +1,45 @@
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*-private.pem
+id_rsa*
+id_ecdsa*
+id_ed25519*
+*.pfx
+*.p12
+secrets/**/*
+!secrets/README.md
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Shell
+*.log
+.history
+*_history
+
+# Archives
+*.tar.gz
+*.zip
+*.7z
+*.rar

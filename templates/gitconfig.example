@@ -1,0 +1,51 @@
+# =============================================================================
+# Git configuration template
+# Copy to ~/.gitconfig and fill in your details.
+# =============================================================================
+
+[user]
+    name = YOUR_NAME
+    email = YOUR_EMAIL
+
+[core]
+    editor = nvim
+    autocrlf = input
+    excludesfile = ~/.gitignore_global
+
+[init]
+    defaultBranch = main
+
+[push]
+    autoSetupRemote = true
+    default = simple
+
+[pull]
+    rebase = true
+
+[alias]
+    co = checkout
+    br = branch
+    ci = commit
+    st = status
+    lg = log --oneline --graph --all --decorate
+    unstage = reset HEAD --
+    last = log -1 HEAD
+
+[credential]
+    # Use SSH keys instead of HTTPS + credential helper where possible
+    # helper = /usr/local/bin/git-credential-manager
+
+[diff]
+    tool = nvimdiff
+
+[merge]
+    tool = nvimdiff
+    conflictstyle = diff3
+
+# ── Platform-specific overrides ─────────────────────────────────────────
+# On Windows:
+# [core]
+#     autocrlf = true
+# On macOS:
+# [credential]
+#     helper = osxkeychain

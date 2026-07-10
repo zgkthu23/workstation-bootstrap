@@ -1,0 +1,9 @@
+# =============================================================================
+# Ubuntu dotfiles placeholder
+# =============================================================================
+# Phase 1: dotfiles are not deployed.
+#
+# Phase 3 will populate:
+#   .bashrc.tmpl
+#   .profile.tmpl
+#   .tmux.conf.tmpl

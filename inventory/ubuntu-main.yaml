@@ -1,0 +1,42 @@
+# =============================================================================
+# Inventory: ubuntu-main
+# Ubuntu LTS development server / desktop
+# =============================================================================
+
+host: ubuntu-main
+os: ubuntu
+hostname: PUT_YOUR_UBUNTU_HOSTNAME_HERE
+
+# Logical root paths
+workspace_root: /home/PUT_YOUR_USERNAME/workspace
+data_root: /home/PUT_YOUR_USERNAME/data
+cloud_root: /home/PUT_YOUR_USERNAME/cloud
+scratch_root: /home/PUT_YOUR_USERNAME/scratch
+
+# Enabled feature groups
+features:
+  - common
+  - c-development
+  - python-development
+  - node-development
+  - docker
+  - research
+
+# Project groups to clone
+project_groups:
+  - work
+  - personal
+  - research
+  - tools
+  - experiments
+
+# Git identity (template — real values set during bootstrap)
+git_user_name: "PUT_YOUR_NAME"
+git_user_email: "PUT_YOUR_EMAIL"
+
+# Optional installations
+install_docker: true
+install_c_dev: true
+install_python_dev: true
+install_node_dev: true
+install_office: false

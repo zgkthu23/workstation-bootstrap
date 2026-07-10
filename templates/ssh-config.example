@@ -1,0 +1,26 @@
+# =============================================================================
+# SSH configuration template
+# Copy to ~/.ssh/config — do NOT commit real hostnames/IPs.
+# =============================================================================
+
+# ── GitHub ──────────────────────────────────────────────────────────────
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+
+# ── Template for your own hosts ─────────────────────────────────────────
+# Host myserver
+#     HostName REPLACE_WITH_HOSTNAME_OR_IP
+#     User YOUR_USERNAME
+#     IdentityFile ~/.ssh/id_ed25519
+#     Port 22
+
+# ── Global defaults ─────────────────────────────────────────────────────
+Host *
+    AddKeysToAgent yes
+    UseKeychain yes      # macOS only
+    # UseKeychain no     # Linux
+    ServerAliveInterval 60
+    ServerAliveCountMax 3

@@ -1,0 +1,44 @@
+# =============================================================================
+# Inventory: windows-main
+# Windows 11 primary development desktop
+# =============================================================================
+
+host: windows-main
+os: windows
+hostname: PUT_YOUR_WINDOWS_HOSTNAME_HERE
+
+# Logical root paths
+workspace_root: D:\workspace
+data_root: D:\data
+cloud_root: C:\Users\PUT_YOUR_USERNAME\OneDrive
+scratch_root: D:\scratch
+
+# Enabled feature groups
+features:
+  - common
+  - c-development
+  - python-development
+  - node-development
+  - docker
+  - office
+  - research
+  - optional
+
+# Project groups to clone
+project_groups:
+  - work
+  - personal
+  - research
+  - tools
+  - experiments
+
+# Git identity (template — real values set during bootstrap)
+git_user_name: "PUT_YOUR_NAME"
+git_user_email: "PUT_YOUR_EMAIL"
+
+# Optional installations
+install_docker: true
+install_c_dev: true
+install_python_dev: true
+install_node_dev: true
+install_office: true

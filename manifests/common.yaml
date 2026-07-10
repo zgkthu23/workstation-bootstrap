@@ -1,0 +1,51 @@
+# =============================================================================
+# Common manifest — packages every machine needs
+# =============================================================================
+
+common:
+  description: "Core tools required on every development machine"
+  packages:
+    windows:
+      - Git.Git
+      - Microsoft.VisualStudioCode
+      - Microsoft.WindowsTerminal
+      - Microsoft.PowerShell
+      - 7zip.7zip
+      - Neovim.Neovim
+      - OpenJS.NodeJS.LTS
+      - Python.Python.3.12
+      - Cyanfish.NAPS2  # document scanner
+      - Eugeny.Tabby  # terminal
+    ubuntu:
+      - git
+      - curl
+      - wget
+      - build-essential
+      - cmake
+      - neovim
+      - tmux
+      - htop
+      - ripgrep
+      - fd-find
+      - jq
+      - unzip
+      - python3
+      - python3-pip
+      - python3-venv
+      - nodejs
+      - npm
+    macos:
+      - git
+      - curl
+      - wget
+      - cmake
+      - neovim
+      - tmux
+      - htop
+      - ripgrep
+      - fd
+      - jq
+      - node
+      - python@3.12
+      - iterm2
+      - visual-studio-code

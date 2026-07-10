@@ -1,0 +1,85 @@
+# =============================================================================
+# Git project inventory
+# =============================================================================
+#
+# Each project is cloned to: WORKSPACE_ROOT/repos/<group>/<directory>
+#
+# Fields:
+#   name:        Human-readable name
+#   url:         Git clone URL (HTTPS or SSH)
+#   group:       Project category
+#   directory:   Target directory name under group/
+#   hosts:       List of hosts to clone on
+#   optional:    If true, clone failure does not fail the bootstrap
+#   description: One-line description
+# =============================================================================
+
+projects:
+  # ── Personal ───────────────────────────────────────────────────────────
+  - name: workstation-bootstrap
+    url: git@github.com:zgkthu23/workstation-bootstrap.git
+    group: personal
+    directory: workstation-bootstrap
+    hosts: [windows-main, ubuntu-main, macos-main]
+    optional: false
+    description: "Personal workstation infrastructure as code"
+
+  - name: claude-config
+    url: git@github.com:zgkthu23/claude-config.git
+    group: personal
+    directory: claude-config
+    hosts: [windows-main, ubuntu-main, macos-main]
+    optional: false
+    description: "Claude Code configuration"
+
+  - name: dotfiles
+    url: PUT_YOUR_DOTFILES_REPO_URL
+    group: personal
+    directory: dotfiles
+    hosts: [windows-main, ubuntu-main, macos-main]
+    optional: true
+    description: "Personal dotfiles (chezmoi source)"
+
+  # ── Tools ──────────────────────────────────────────────────────────────
+  - name: mygit
+    url: git@github.com:zgkthu23/mygit.git
+    group: tools
+    directory: mygit
+    hosts: [windows-main, ubuntu-main]
+    optional: true
+    description: "Python implementation of git internals"
+
+  - name: ZipCracker
+    url: git@github.com:zgkthu23/ZipCracker.git
+    group: tools
+    directory: ZipCracker
+    hosts: [windows-main, ubuntu-main]
+    optional: true
+    description: "Zip password cracking tool for CTF"
+
+  # ── Work ───────────────────────────────────────────────────────────────
+  - name: work-project-alpha
+    url: PUT_YOUR_WORK_REPO_URL
+    group: work
+    directory: project-alpha
+    hosts: [windows-main, ubuntu-main]
+    optional: true
+    description: "Main work project — replace with real URL"
+
+  # ── Research ───────────────────────────────────────────────────────────
+  - name: research-lwfa
+    url: PUT_YOUR_LWFA_REPO_URL
+    group: research
+    directory: lwfa
+    hosts: [windows-main, ubuntu-main]
+    optional: true
+    description: "LWFA research project — replace with real URL"
+
+  # ── Experiments ────────────────────────────────────────────────────────
+  - name: experiments-misc
+    url: PUT_YOUR_EXPERIMENTS_REPO_URL
+    group: experiments
+    directory: misc
+    hosts: [windows-main]
+    optional: true
+    description: "Miscellaneous experiments — replace with real URL"

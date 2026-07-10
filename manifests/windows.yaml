@@ -1,0 +1,46 @@
+# =============================================================================
+# Windows-specific manifest
+# =============================================================================
+
+features:
+  c-development:
+    packages:
+      - Microsoft.VisualStudio.2022.Community
+      - LLVM.LLVM
+      - CMake.CMake
+      - Ninja-build.Ninja
+
+  python-development:
+    packages:
+      - Python.Python.3.12
+      - astral-sh.uv
+
+  node-development:
+    packages:
+      - OpenJS.NodeJS.LTS
+      - pnpm.pnpm
+
+  docker:
+    packages:
+      - Docker.DockerDesktop
+
+  office:
+    packages:
+      - Microsoft.Office
+      - TheDocumentFoundation.LibreOffice
+      - Adobe.Acrobat.Reader.64-bit
+
+  research:
+    packages:
+      - MiKTeX.MiKTeX
+      - Zotero.Zotero
+      - draw.io
+
+  optional:
+    packages:
+      - VideoLAN.VLC
+      - Spotify.Spotify
+      - Notion.Notion
+      - Discord.Discord
+      - Valve.Steam
+      - SlackTechnologies.Slack

@@ -1,0 +1,65 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  yaml:
+    name: YAML validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint YAML files
+        run: yamllint inventory/ manifests/ projects/ .github/
+
+  python:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install uv
+      - name: Validate manifests
+        run: uv run python tests/validate_manifests.py
+      - name: Secret scan
+        run: uv run python tests/test_no_secrets.py
+
+  shellcheck:
+    name: Shell script checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: "./scripts/unix"
+
+  powershell:
+    name: PowerShell syntax check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PowerShell syntax
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path scripts/windows -Filter *.ps1 | ForEach-Object {
+            Write-Host "Checking: $($_.Name)"
+            $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName, [ref]$null, [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              Write-Host "  FAIL: $($errors.Count) error(s)"
+              $errors | ForEach-Object { Write-Host "    $($_.Message)" }
+              exit 1
+            }
+            Write-Host "  PASS"
+          }

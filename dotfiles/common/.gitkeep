@@ -1,0 +1,12 @@
+# =============================================================================
+# Common dotfiles placeholder
+# =============================================================================
+# Phase 1: dotfiles are not deployed. This directory is reserved for
+# chezmoi-managed dotfiles shared across all operating systems.
+#
+# Phase 3 will populate:
+#   .gitconfig.tmpl
+#   .bashrc.tmpl
+#   .aliases
+#   .functions
+#   .inputrc

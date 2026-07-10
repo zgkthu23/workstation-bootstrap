@@ -1,0 +1,8 @@
+# =============================================================================
+# macOS dotfiles placeholder
+# =============================================================================
+# Phase 1: dotfiles are not deployed.
+#
+# Phase 3 will populate:
+#   .zshrc.tmpl
+#   .macos-defaults.sh

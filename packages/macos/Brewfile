@@ -1,0 +1,54 @@
+# =============================================================================
+# macOS Homebrew Brewfile
+# Phase 1: placeholder. Real packages defined in manifests/macos.yaml
+# =============================================================================
+
+# ── Common ──────────────────────────────────────────────────────────────
+brew "git"
+brew "curl"
+brew "wget"
+brew "cmake"
+brew "neovim"
+brew "tmux"
+brew "htop"
+brew "ripgrep"
+brew "fd"
+brew "jq"
+brew "node"
+brew "python@3.12"
+cask "iterm2"
+cask "visual-studio-code"
+
+# ── C/C++ Development ───────────────────────────────────────────────────
+brew "llvm"
+brew "cmake"
+brew "ninja"
+brew "gdb"
+
+# ── Python Development ──────────────────────────────────────────────────
+brew "python@3.12"
+brew "uv"
+
+# ── Node.js Development ─────────────────────────────────────────────────
+brew "node"
+brew "pnpm"
+
+# ── Docker ──────────────────────────────────────────────────────────────
+brew "docker"
+brew "docker-compose"
+
+# ── Office ──────────────────────────────────────────────────────────────
+brew "libreoffice"
+
+# ── Research ────────────────────────────────────────────────────────────
+brew "mactex"
+brew "pandoc"
+brew "zotero"
+brew "r"
+brew "julia"
+
+# ── Optional ────────────────────────────────────────────────────────────
+brew "vlc"
+brew "gimp"
+brew "inkscape"
+brew "thunderbird"

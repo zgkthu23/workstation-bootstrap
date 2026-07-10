@@ -1,0 +1,46 @@
+# =============================================================================
+# macOS-specific manifest
+# =============================================================================
+
+features:
+  c-development:
+    packages:
+      - llvm
+      - cmake
+      - ninja
+      - gdb
+
+  python-development:
+    packages:
+      - python@3.12
+      - uv
+
+  node-development:
+    packages:
+      - node
+      - pnpm
+
+  docker:
+    packages:
+      - docker
+      - docker-compose
+
+  office:
+    packages:
+      - libreoffice
+
+  research:
+    packages:
+      - mactex
+      - pandoc
+      - zotero
+      - r
+      - julia
+      # - drawio  # cask
+
+  optional:
+    packages:
+      - vlc
+      - gimp
+      - inkscape
+      - thunderbird
