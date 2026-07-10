@@ -2,7 +2,9 @@
 
 ## 概述
 
-引导是编排器，按顺序运行所有安装脚本。
+顶层 `run.sh` / `run.ps1` 选择本机编排器。编排器读取 `MANIFEST.yaml`，按
+`bootstrap_steps` 的显式顺序运行任务。原有 `scripts/<platform>/bootstrap.*`
+继续作为兼容入口。
 
 ## 操作顺序
 
@@ -12,13 +14,16 @@
 4. **克隆仓库** —— 来自 `projects/repos.yaml` 的 Git 项目
 5. **验证** —— 引导后校验
 
+使用 `--task ID` / `-Task ID` 可以只运行一个步骤；使用 `--list-tasks` /
+`-ListTasks` 可以从清单发现当前任务。直接任务和完整工作流调用同一任务实现。
+
 ## 试运行模式
 
-所有脚本支持试运行。在试运行模式下：
+所有会修改状态的脚本支持试运行。在试运行模式下：
 - 不会修改文件系统
 - 不会安装软件包
 - 不会执行 git clone 操作
-- 输出是人类可读的计划，展示*将会*发生什么
+- 输出为 Agent 可解析的 `[INFO]` / `[WARN]` / `[SUCCESS]` 记录
 
 ## 幂等性
 
@@ -30,10 +35,21 @@
 
 ## 错误处理
 
-- 单个软件包失败不会中断整个运行（第二阶段实现）
-- 单个仓库克隆失败不会阻止其他克隆（第二阶段实现）
-- 错误在运行结束时汇总报告
-- 退出码反映整体成功/失败
+- `failure_policy: stop` 的步骤失败时立即停止
+- `failure_policy: continue` 的步骤失败后继续验证，但最终整体返回 `1`
+- 返回 `2` 的任务记录为跳过/不适用，不计为工作流失败
+- 所有 `[ERROR]` 写入 stderr；其他结构化记录写入 stdout
+
+## Agent 输出
+
+默认文本记录形如：
+
+```text
+[INFO] 2026-01-01T00:00:00Z [create-directories] Inventory: ...
+```
+
+指定 `--output-format json` / `-OutputFormat json` 后，每行都是独立 JSON 对象，
+可作为 NDJSON 流解析。两种格式都使用同一 level、component、message 语义。
 
 ## 引导后操作
 

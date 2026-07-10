@@ -1,120 +1,144 @@
 <#
-.SYNOPSIS
-    初始化后验证工作站状态。
-.DESCRIPTION
-    检查操作系统、主机名、inventory、目录、Git、包管理器
-    和项目结构。发现问题时返回非零退出码。
-.PARAMETER Inventory
-    inventory YAML 文件路径。
+SCRIPT-METADATA
+name: windows-verify
+description: Verifies host prerequisites plus the project contract and repository secret scan.
+platform: windows
+inputs: -Inventory PATH, -OutputFormat text|json, -Help
+outputs: stdout=[INFO|WARN|SUCCESS] records; stderr=[ERROR] records
+exit_codes: 0=success, 1=verification-error, 2=skipped-or-not-applicable
+END-SCRIPT-METADATA
 #>
-
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$Inventory
+    [string]$Inventory,
+    [string]$OutputFormat = 'text',
+    [switch]$Help
 )
 
-$ErrorActionPreference = 'Continue'
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Resolve-Path "$scriptDir\..\.."
+$ErrorActionPreference = 'Stop'
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+try {
+    Import-Module (Join-Path $projectRoot 'scripts\lib\Bootstrap.Common.psm1') -Force
+    Initialize-BootstrapRuntime -Component 'verify' -OutputFormat $OutputFormat
+} catch {
+    [Console]::Error.WriteLine("[ERROR] $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')) [verify] Runtime initialization failed: $($_.Exception.Message)")
+    exit 1
+}
 
-function Write-Log {
-    param([string]$Level, [string]$Message)
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    $color = switch ($Level) {
-        'ERROR' { 'Red' }
-        'WARN'  { 'Yellow' }
-        'PASS'  { 'Green' }
-        default { 'White' }
-    }
-    Write-Host "[$timestamp] [$Level] $Message" -ForegroundColor $color
+function Show-Usage {
+    [Console]::Out.WriteLine(@'
+Usage: verify.ps1 -Inventory PATH [options]
+  -Inventory PATH          Inventory YAML file (required).
+  -OutputFormat text|json  Emit text records (default) or NDJSON records.
+  -Help                    Show this help.
+'@)
+}
+
+if ($Help) { Show-Usage; exit 0 }
+if (-not $Inventory) {
+    Write-BootstrapRecord -Level ERROR -Message '-Inventory is required.'
+    exit 1
 }
 
 $errors = 0
 $warnings = 0
+try {
+    $osInfo = Get-CimInstance Win32_OperatingSystem
+    Write-BootstrapRecord -Level INFO -Message "Operating system: $($osInfo.Caption)"
+} catch {
+    Write-BootstrapRecord -Level WARN -Message "Could not query operating system details: $($_.Exception.Message)"
+    $warnings++
+}
+Write-BootstrapRecord -Level INFO -Message "Hostname: $env:COMPUTERNAME"
 
-Write-Host ""
-Write-Host "=== 工作站验证 ===" -ForegroundColor Cyan
-Write-Host ""
-
-# 1. 检查操作系统
-$osInfo = Get-CimInstance Win32_OperatingSystem
-Write-Log 'INFO' "操作系统: $($osInfo.Caption)"
-Write-Log 'INFO' "主机名: $env:COMPUTERNAME"
-
-# 2. 检查 inventory 是否存在
-if (-not (Test-Path $Inventory)) {
-    Write-Log 'ERROR' "未找到 inventory: $Inventory"
-    $errors++
+if (Test-Path -LiteralPath $Inventory -PathType Leaf) {
+    Write-BootstrapRecord -Level SUCCESS -Message "Inventory found: $Inventory"
 } else {
-    Write-Log 'PASS' "已找到 inventory: $Inventory"
+    Write-BootstrapRecord -Level ERROR -Message "Inventory not found: $Inventory"
+    $errors++
 }
 
-# 3. 检查 Git
-try {
+$gitCommand = Get-Command git -ErrorAction SilentlyContinue
+if ($gitCommand) {
     $gitVersion = & git --version 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Log 'PASS' "Git: $gitVersion"
+        Write-BootstrapRecord -Level SUCCESS -Message "Git available: $gitVersion"
     } else {
-        Write-Log 'ERROR' 'Git 未安装'
+        Write-BootstrapRecord -Level ERROR -Message 'Git version check failed.'
         $errors++
     }
-} catch {
-    Write-Log 'ERROR' 'Git 未安装'
+} else {
+    Write-BootstrapRecord -Level ERROR -Message 'Git is not installed.'
     $errors++
 }
 
-# 4. 检查 winget
-try {
+$wingetCommand = Get-Command winget -ErrorAction SilentlyContinue
+if ($wingetCommand) {
     $wingetVersion = & winget --version 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Log 'PASS' "winget: $wingetVersion"
+        Write-BootstrapRecord -Level SUCCESS -Message "winget available: $wingetVersion"
     } else {
-        Write-Log 'WARN' 'winget 不可用'
+        Write-BootstrapRecord -Level WARN -Message 'winget version check failed.'
         $warnings++
     }
-} catch {
-    Write-Log 'WARN' 'winget 不可用'
+} else {
+    Write-BootstrapRecord -Level WARN -Message 'winget is unavailable.'
     $warnings++
 }
 
-# 5. 检查 repos.yaml 是否存在
-$reposYaml = "$projectRoot\projects\repos.yaml"
-if (Test-Path $reposYaml) {
-    Write-Log 'PASS' "已找到 repos.yaml"
+$reposYaml = Join-Path $projectRoot 'projects\repos.yaml'
+if (Test-Path -LiteralPath $reposYaml -PathType Leaf) {
+    Write-BootstrapRecord -Level SUCCESS -Message "Repository manifest found: $reposYaml"
 } else {
-    Write-Log 'ERROR' "未找到 repos.yaml: $reposYaml"
+    Write-BootstrapRecord -Level ERROR -Message "Repository manifest not found: $reposYaml"
     $errors++
 }
 
-# 6. 扫描仓库中的密钥
-$secretsScan = "$projectRoot\tests\test_no_secrets.py"
-if (Test-Path $secretsScan) {
-    Write-Log 'INFO' "正在运行密钥扫描..."
-    try {
-        & uv run python $secretsScan 2>&1 | ForEach-Object { Write-Host $_ }
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log 'PASS' '密钥扫描: 无问题'
-        } else {
-            Write-Log 'WARN' '密钥扫描发现问题（见上方输出）'
-            $warnings++
-        }
-    } catch {
-        Write-Log 'WARN' "无法运行密钥扫描: $_"
-        $warnings++
+$pythonCommand = $null
+if (Get-Command uv -ErrorAction SilentlyContinue) {
+    & uv run --quiet python --version 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $pythonCommand = 'uv' }
+}
+foreach ($candidate in 'python', 'python3', 'py') {
+    if ($pythonCommand) { break }
+    if (Get-Command $candidate -ErrorAction SilentlyContinue) {
+        if ($candidate -eq 'py') { & py -3 --version 2>$null | Out-Null }
+        else { & $candidate --version 2>$null | Out-Null }
+        if ($LASTEXITCODE -eq 0) { $pythonCommand = $candidate; break }
     }
 }
 
-# 7. 汇总
-Write-Host ""
-Write-Host "=== 验证汇总 ===" -ForegroundColor Cyan
-Write-Host "错误: $errors" -ForegroundColor $(if ($errors -gt 0) { 'Red' } else { 'Green' })
-Write-Host "警告: $warnings" -ForegroundColor $(if ($warnings -gt 0) { 'Yellow' } else { 'Green' })
+if ($pythonCommand) {
+    $validations = @(
+        @{ Id = 'project-contract'; Path = (Join-Path $projectRoot 'tests\validate_manifests.py'); Arguments = @('--root', $projectRoot, '--output-format', $OutputFormat) },
+        @{ Id = 'secret-scan'; Path = (Join-Path $projectRoot 'tests\test_no_secrets.py'); Arguments = @('--path', $projectRoot, '--output-format', $OutputFormat) }
+    )
+    foreach ($validation in $validations) {
+        if (-not (Test-Path -LiteralPath $validation.Path -PathType Leaf)) {
+            Write-BootstrapRecord -Level WARN -Message "Validation script not found: $($validation.Path)"
+            $warnings++
+            continue
+        }
+        Write-BootstrapRecord -Level INFO -Message "Running $($validation.Id) validation."
+        if ($pythonCommand -eq 'uv') { & uv run --quiet python $validation.Path @($validation.Arguments) }
+        elseif ($pythonCommand -eq 'py') { & py -3 $validation.Path @($validation.Arguments) }
+        else { & $pythonCommand $validation.Path @($validation.Arguments) }
+        $validationExit = $LASTEXITCODE
+        if ($validationExit -eq 0) {
+            Write-BootstrapRecord -Level SUCCESS -Message "$($validation.Id) validation passed."
+        } else {
+            Write-BootstrapRecord -Level WARN -Message "$($validation.Id) validation returned exit code $validationExit."
+            $warnings++
+        }
+    }
+} else {
+    Write-BootstrapRecord -Level WARN -Message 'Python is unavailable; Python repository validations were not run.'
+    $warnings++
+}
 
 if ($errors -gt 0) {
-    Write-Host "验证未通过" -ForegroundColor Red
+    Write-BootstrapRecord -Level ERROR -Message "Verification failed: errors=$errors, warnings=$warnings."
     exit 1
-} else {
-    Write-Host "验证通过" -ForegroundColor Green
-    exit 0
 }
+Write-BootstrapRecord -Level SUCCESS -Message "Verification passed: errors=0, warnings=$warnings."
+exit 0

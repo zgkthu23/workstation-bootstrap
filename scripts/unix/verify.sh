@@ -1,138 +1,149 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# 引导完成后验证工作站状态
-# ==============================================================================
-set -euo pipefail
+# SCRIPT-METADATA
+# name: unix-verify
+# description: Verifies host prerequisites plus the project contract and repository secret scan.
+# platform: ubuntu, macos
+# inputs: --inventory PATH, --output-format text|json, --help
+# outputs: stdout=[INFO|WARN|SUCCESS] records; stderr=[ERROR] records
+# exit_codes: 0=success, 1=verification-error, 2=skipped-or-not-applicable
+# END-SCRIPT-METADATA
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=scripts/lib/common.bash
+source "$PROJECT_ROOT/scripts/lib/common.bash"
 
-INVENTORY=""
-
-log() {
-    local level="$1" message="$2"
-    local color=''
-    case "$level" in
-        ERROR) color='\033[0;31m' ;;
-        WARN)  color='\033[0;33m' ;;
-        PASS)  color='\033[0;32m' ;;
-        *)     color='\033[0m' ;;
-    esac
-    printf "${color}[%s] [%s] %s\033[0m\n" "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$message"
-}
+INVENTORY=''
+OUTPUT_FORMAT="${BOOTSTRAP_OUTPUT_FORMAT:-text}"
 
 usage() {
-    cat <<EOF
-用法: $(basename "$0") --inventory PATH
-
-选项:
-  --inventory PATH  指向 inventory YAML 文件的路径（必填）
-  --help            显示此帮助信息
-EOF
-    exit 0
+    printf '%s\n' \
+        'Usage: verify.sh --inventory PATH [options]' \
+        '  --inventory PATH          Inventory YAML file (required).' \
+        '  --output-format text|json Emit text records (default) or NDJSON records.' \
+        '  --help, -h                Show this help.'
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --inventory) INVENTORY="$2"; shift ;;
-        --help|-h)   usage ;;
-        *)           echo "未知选项: $1"; usage ;;
+        --inventory|--output-format)
+            if [[ $# -lt 2 ]]; then
+                bootstrap_init 'verify' "$OUTPUT_FORMAT" || true
+                bootstrap_write_record 'ERROR' 'verify' "Missing value for $1."
+                exit 1
+            fi
+            if [[ "$1" == '--inventory' ]]; then INVENTORY="$2"; else OUTPUT_FORMAT="$2"; fi
+            shift
+            ;;
+        --help|-h) usage; exit 0 ;;
+        *)
+            bootstrap_init 'verify' "$OUTPUT_FORMAT" || true
+            bootstrap_write_record 'ERROR' 'verify' "Unknown option: $1"
+            exit 1
+            ;;
     esac
     shift
 done
 
+bootstrap_init 'verify' "$OUTPUT_FORMAT" || exit 1
+bootstrap_enable_error_trap
 if [[ -z "$INVENTORY" ]]; then
-    log 'ERROR' '--inventory 参数为必填项'
+    bootstrap_write_record 'ERROR' 'verify' '--inventory is required.'
     exit 1
 fi
 
 ERRORS=0
 WARNINGS=0
+bootstrap_write_record 'INFO' 'verify' "Operating system: $(uname -s)"
+bootstrap_write_record 'INFO' 'verify' "Hostname: $(hostname)"
 
-echo ''
-echo '=== 工作站验证 ==='
-echo ''
-
-# 1. 操作系统信息
-log 'INFO' "操作系统: $(uname -s)"
-log 'INFO' "主机名: $(hostname)"
-
-# 2. Inventory 文件
 if [[ -f "$INVENTORY" ]]; then
-    log 'PASS' "找到 inventory 文件: $INVENTORY"
+    bootstrap_write_record 'SUCCESS' 'verify' "Inventory found: $INVENTORY"
 else
-    log 'ERROR' "未找到 inventory 文件: $INVENTORY"
-    ((++ERRORS))
+    bootstrap_write_record 'ERROR' 'verify' "Inventory not found: $INVENTORY"
+    ERRORS=$((ERRORS + 1))
 fi
 
-# 3. Git
-if command -v git &>/dev/null; then
-    log 'PASS' "Git: $(git --version)"
+if command -v git >/dev/null 2>&1; then
+    bootstrap_write_record 'SUCCESS' 'verify' "Git available: $(git --version)"
 else
-    log 'ERROR' 'Git 未安装'
-    ((++ERRORS))
+    bootstrap_write_record 'ERROR' 'verify' 'Git is not installed.'
+    ERRORS=$((ERRORS + 1))
 fi
 
-# 4. 包管理器
 case "$(uname -s)" in
     Linux)
-        if command -v apt &>/dev/null; then
-            log 'PASS' 'apt 可用'
+        if command -v apt >/dev/null 2>&1; then
+            bootstrap_write_record 'SUCCESS' 'verify' 'apt is available.'
         else
-            log 'WARN' '未找到 apt'
-            ((++WARNINGS))
+            bootstrap_write_record 'WARN' 'verify' 'apt was not found.'
+            WARNINGS=$((WARNINGS + 1))
         fi
         ;;
     Darwin)
-        if command -v brew &>/dev/null; then
-            log 'PASS' "Homebrew: $(brew --version | head -1)"
+        if command -v brew >/dev/null 2>&1; then
+            bootstrap_write_record 'SUCCESS' 'verify' "Homebrew available: $(brew --version | head -1)"
         else
-            log 'WARN' '未找到 Homebrew'
-            ((++WARNINGS))
+            bootstrap_write_record 'WARN' 'verify' 'Homebrew was not found.'
+            WARNINGS=$((WARNINGS + 1))
         fi
         ;;
 esac
 
-# 5. repos.yaml
 REPOS_YAML="$PROJECT_ROOT/projects/repos.yaml"
 if [[ -f "$REPOS_YAML" ]]; then
-    log 'PASS' '找到 repos.yaml'
+    bootstrap_write_record 'SUCCESS' 'verify' "Repository manifest found: $REPOS_YAML"
 else
-    log 'ERROR' "未找到 repos.yaml: $REPOS_YAML"
-    ((++ERRORS))
+    bootstrap_write_record 'ERROR' 'verify' "Repository manifest not found: $REPOS_YAML"
+    ERRORS=$((ERRORS + 1))
 fi
 
-# 6. 密钥扫描
-SECRETS_SCAN="$PROJECT_ROOT/tests/test_no_secrets.py"
-if [[ -f "$SECRETS_SCAN" ]]; then
-    log 'INFO' '正在运行密钥扫描...'
-    if command -v uv &>/dev/null; then
-        if uv run python "$SECRETS_SCAN" 2>&1; then
-            log 'PASS' '密钥扫描: 未发现问题'
-        else
-            log 'WARN' '密钥扫描发现问题（见上方输出）'
-            ((++WARNINGS))
-        fi
-    else
-        if python3 "$SECRETS_SCAN" 2>&1; then
-            log 'PASS' '密钥扫描: 未发现问题'
-        else
-            log 'WARN' '密钥扫描发现问题（见上方输出）'
-            ((++WARNINGS))
-        fi
-    fi
+PYTHON_COMMAND=''
+if command -v uv >/dev/null 2>&1 && uv run --quiet python --version >/dev/null 2>&1; then
+    PYTHON_COMMAND='uv'
+elif command -v python3 >/dev/null 2>&1 && python3 --version >/dev/null 2>&1; then
+    PYTHON_COMMAND='python3'
+elif command -v python >/dev/null 2>&1 && python --version >/dev/null 2>&1; then
+    PYTHON_COMMAND='python'
 fi
 
-# 7. 汇总
-echo ''
-echo '=== 验证汇总 ==='
-printf '错误  : %d\n' "$ERRORS"
-printf '警告  : %d\n' "$WARNINGS"
+if [[ -n "$PYTHON_COMMAND" ]]; then
+    for validation_id in project-contract secret-scan; do
+        validation_status=0
+        if [[ "$validation_id" == 'project-contract' ]]; then
+            validation_script="$PROJECT_ROOT/tests/validate_manifests.py"
+            validation_args=(--root "$PROJECT_ROOT" --output-format "$OUTPUT_FORMAT")
+        else
+            validation_script="$PROJECT_ROOT/tests/test_no_secrets.py"
+            validation_args=(--path "$PROJECT_ROOT" --output-format "$OUTPUT_FORMAT")
+        fi
+        if [[ ! -f "$validation_script" ]]; then
+            bootstrap_write_record 'WARN' 'verify' "Validation script not found: $validation_script"
+            WARNINGS=$((WARNINGS + 1))
+            continue
+        fi
+        bootstrap_write_record 'INFO' 'verify' "Running $validation_id validation."
+        if [[ "$PYTHON_COMMAND" == 'uv' ]]; then
+            uv run --quiet python "$validation_script" "${validation_args[@]}" || validation_status=$?
+        else
+            "$PYTHON_COMMAND" "$validation_script" "${validation_args[@]}" || validation_status=$?
+        fi
+        if [[ "$validation_status" -eq 0 ]]; then
+            bootstrap_write_record 'SUCCESS' 'verify' "$validation_id validation passed."
+        else
+            bootstrap_write_record 'WARN' 'verify' "$validation_id validation returned exit code $validation_status."
+            WARNINGS=$((WARNINGS + 1))
+        fi
+    done
+else
+    bootstrap_write_record 'WARN' 'verify' 'Python is unavailable; Python repository validations were not run.'
+    WARNINGS=$((WARNINGS + 1))
+fi
 
-if [[ $ERRORS -gt 0 ]]; then
-    echo '验证未通过'
+if [[ "$ERRORS" -gt 0 ]]; then
+    bootstrap_write_record 'ERROR' 'verify' "Verification failed: errors=$ERRORS, warnings=$WARNINGS."
     exit 1
-else
-    echo '验证通过'
-    exit 0
 fi
+bootstrap_write_record 'SUCCESS' 'verify' "Verification passed: errors=0, warnings=$WARNINGS."
+exit 0

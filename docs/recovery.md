@@ -53,10 +53,10 @@ cd workstation-bootstrap
 ### 6. 试运行
 ```bash
 # Unix
-./scripts/unix/bootstrap.sh --dry-run
+bash ./run.sh --dry-run
 
 # Windows
-.\scripts\windows\bootstrap.ps1 -DryRun
+.\run.ps1 -DryRun
 ```
 
 ### 7. 检查并确认
@@ -69,10 +69,10 @@ cd workstation-bootstrap
 ### 8. 执行引导
 ```bash
 # Unix
-./scripts/unix/bootstrap.sh
+bash ./run.sh
 
 # Windows
-.\scripts\windows\bootstrap.ps1
+.\run.ps1
 ```
 
 ### 9. 恢复密钥

@@ -1,106 +1,90 @@
 <#
-.SYNOPSIS
-    创建 Windows 工作区目录结构。
-.DESCRIPTION
-    读取 inventory YAML 文件，创建逻辑根目录和工作区布局。
-    支持幂等执行——可安全地多次运行。
-.PARAMETER DryRun
-    展示将要创建的目录。
-.PARAMETER Inventory
-    inventory YAML 文件路径。
+SCRIPT-METADATA
+name: windows-create-directories
+description: Idempotently creates inventory-defined roots and the standard workspace layout.
+platform: windows
+inputs: -Inventory PATH, -DryRun, -OutputFormat text|json, -Help
+outputs: stdout=[INFO|WARN|SUCCESS] records; stderr=[ERROR] records
+exit_codes: 0=success, 1=error, 2=skipped-or-not-applicable
+END-SCRIPT-METADATA
 #>
-
 [CmdletBinding()]
 param(
+    [string]$Inventory,
     [switch]$DryRun,
-    [Parameter(Mandatory=$true)]
-    [string]$Inventory
+    [string]$OutputFormat = 'text',
+    [switch]$Help
 )
 
 $ErrorActionPreference = 'Stop'
-
-function Write-Log {
-    param([string]$Level, [string]$Message)
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    Write-Host "[$timestamp] [$Level] $Message"
-}
-
-# 简易 YAML 读取器（无外部依赖）
-# ponytail: 极简 inventory YAML 解析器——仅处理我们使用的扁平结构
-function Read-Inventory {
-    param([string]$Path)
-    $content = Get-Content $Path -Raw
-    $result = @{}
-    $lines = $content -split "`n"
-    foreach ($line in $lines) {
-        # 先剥离行内注释
-        $line = $line -replace '\s*#.*$', ''
-        if ($line -match '^\s*(\w[\w_]*):\s*"?(.+?)"?\s*$') {
-            $key = $Matches[1]
-            $value = $Matches[2].Trim('"', '''')
-            $result[$key] = $value
-        } elseif ($line -match '^\s*(\w[\w_]*):\s*(.+?)\s*$') {
-            $key = $Matches[1]
-            $value = $Matches[2].Trim()
-            if ($value -ne '') { $result[$key] = $value }
-        }
-    }
-    return $result
-}
-
-$inv = Read-Inventory $Inventory
-
-# 验证必填根目录
-if (-not ($inv['workspace_root'] -and $inv['data_root'] -and $inv['scratch_root'])) {
-    Write-Log 'ERROR' "inventory 文件缺少必填字段: workspace_root, data_root, scratch_root"
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+try {
+    Import-Module (Join-Path $projectRoot 'scripts\lib\Bootstrap.Common.psm1') -Force
+    Initialize-BootstrapRuntime -Component 'create-directories' -OutputFormat $OutputFormat
+} catch {
+    [Console]::Error.WriteLine("[ERROR] $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')) [create-directories] Runtime initialization failed: $($_.Exception.Message)")
     exit 1
 }
 
-$roots = @(
-    $inv['workspace_root'],
-    $inv['data_root'],
-    $inv['scratch_root']
-)
-if ($inv.ContainsKey('cloud_root') -and $inv['cloud_root']) {
-    $roots += $inv['cloud_root']
+function Show-Usage {
+    [Console]::Out.WriteLine(@'
+Usage: create-directories.ps1 -Inventory PATH [options]
+  -Inventory PATH          Inventory YAML file (required).
+  -DryRun                  Report planned directories without creating them.
+  -OutputFormat text|json  Emit text records (default) or NDJSON records.
+  -Help                    Show this help.
+'@)
 }
 
-$workspace = $inv['workspace_root']
-$workspaceDirs = @(
-    "$workspace\repos\work",
-    "$workspace\repos\personal",
-    "$workspace\repos\research",
-    "$workspace\repos\tools",
-    "$workspace\repos\experiments",
-    "$workspace\artifacts\releases",
-    "$workspace\artifacts\reports",
-    "$workspace\artifacts\exports",
-    "$workspace\shared\templates",
-    "$workspace\shared\scripts"
-)
+if ($Help) { Show-Usage; exit 0 }
 
-$allDirs = $roots + $workspaceDirs
+try {
+    if (-not $Inventory) { throw '-Inventory is required.' }
+    Assert-BootstrapFile -Path $Inventory -Label 'Inventory'
 
-Write-Log 'INFO' "Inventory: $Inventory"
-Write-Log 'INFO' "根目录: $($roots -join ', ')"
-
-$created = 0
-$existed = 0
-
-foreach ($dir in $allDirs) {
-    if (Test-Path $dir) {
-        Write-Log 'INFO' "已存在: $dir"
-        $existed++
-    } else {
-        if ($DryRun) {
-            Write-Host "  [试运行] 将创建: $dir" -ForegroundColor Yellow
-        } else {
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Write-Log 'INFO' "已创建: $dir"
-        }
-        $created++
+    $workspaceRoot = Read-BootstrapYamlScalar -Path $Inventory -Key 'workspace_root'
+    $dataRoot = Read-BootstrapYamlScalar -Path $Inventory -Key 'data_root'
+    $scratchRoot = Read-BootstrapYamlScalar -Path $Inventory -Key 'scratch_root'
+    $cloudRoot = Read-BootstrapYamlScalar -Path $Inventory -Key 'cloud_root'
+    if (-not $workspaceRoot -or -not $dataRoot -or -not $scratchRoot) {
+        throw 'Inventory is missing required scalar(s): workspace_root, data_root, scratch_root.'
     }
-}
 
-Write-Host ""
-Write-Log 'INFO' "汇总: $existed 个已存在, $created 个待创建" + $(if ($DryRun) { ' (试运行)' } else { '' })
+    $roots = @($workspaceRoot, $dataRoot, $scratchRoot)
+    if ($cloudRoot) { $roots += $cloudRoot }
+    $workspaceDirectories = @(
+        [IO.Path]::Combine($workspaceRoot, 'repos', 'work'),
+        [IO.Path]::Combine($workspaceRoot, 'repos', 'personal'),
+        [IO.Path]::Combine($workspaceRoot, 'repos', 'research'),
+        [IO.Path]::Combine($workspaceRoot, 'repos', 'tools'),
+        [IO.Path]::Combine($workspaceRoot, 'repos', 'experiments'),
+        [IO.Path]::Combine($workspaceRoot, 'artifacts', 'releases'),
+        [IO.Path]::Combine($workspaceRoot, 'artifacts', 'reports'),
+        [IO.Path]::Combine($workspaceRoot, 'artifacts', 'exports'),
+        [IO.Path]::Combine($workspaceRoot, 'shared', 'templates'),
+        [IO.Path]::Combine($workspaceRoot, 'shared', 'scripts')
+    )
+
+    Write-BootstrapRecord -Level INFO -Message "Inventory: $Inventory"
+    if ($DryRun) { Write-BootstrapRecord -Level INFO -Message 'Dry-run mode enabled.' }
+    $created = 0
+    $existed = 0
+    foreach ($directory in @($roots + $workspaceDirectories)) {
+        if (Test-Path -LiteralPath $directory -PathType Container) {
+            Write-BootstrapRecord -Level INFO -Message "Already exists: $directory"
+            $existed++
+        } elseif ($DryRun) {
+            Write-BootstrapRecord -Level INFO -Message "Would create: $directory"
+            $created++
+        } else {
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
+            Write-BootstrapRecord -Level INFO -Message "Created: $directory"
+            $created++
+        }
+    }
+    Write-BootstrapRecord -Level SUCCESS -Message "Directory task complete: existing=$existed, created_or_planned=$created, dry_run=$($DryRun.IsPresent)."
+    exit 0
+} catch {
+    Write-BootstrapRecord -Level ERROR -Message $_.Exception.Message
+    exit 1
+}

@@ -37,13 +37,13 @@ project_groups:
 ### 5. 测试
 ```bash
 # 在新机器上执行：
-./scripts/unix/bootstrap.sh --dry-run
-./scripts/unix/verify.sh
+bash ./run.sh --dry-run
+bash ./scripts/unix/verify.sh --inventory inventory/ubuntu-main.yaml
 ```
 
 ### 6. 应用
 ```bash
-./scripts/unix/bootstrap.sh
+bash ./run.sh
 ```
 
 ## 清单字段参考

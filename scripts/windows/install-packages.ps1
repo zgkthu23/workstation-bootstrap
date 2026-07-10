@@ -1,63 +1,68 @@
 <#
-.SYNOPSIS
-    通过 winget 安装 Windows 软件包。
-.DESCRIPTION
-    读取 inventory 和清单文件，为已启用的功能安装软件包。
-    支持试运行、列表和验证模式。
-.PARAMETER DryRun
-    展示将要安装的软件包。
-.PARAMETER List
-    列出已启用功能的所有软件包，不执行安装。
-.PARAMETER Inventory
-    inventory YAML 文件路径。
+SCRIPT-METADATA
+name: windows-install-packages
+description: Validates winget and reports the retained Phase-1 package plan placeholder.
+platform: windows
+inputs: -Inventory PATH, -DryRun, -List, -OutputFormat text|json, -Help
+outputs: stdout=[INFO|WARN|SUCCESS] records; stderr=[ERROR] records
+exit_codes: 0=success, 1=error, 2=phase-1-placeholder-not-applicable
+END-SCRIPT-METADATA
 #>
-
 [CmdletBinding()]
 param(
+    [string]$Inventory,
     [switch]$DryRun,
     [switch]$List,
-    [Parameter(Mandatory=$true)]
-    [string]$Inventory
+    [string]$OutputFormat = 'text',
+    [switch]$Help
 )
 
 $ErrorActionPreference = 'Stop'
-
-function Write-Log {
-    param([string]$Level, [string]$Message)
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    Write-Host "[$timestamp] [$Level] $Message"
-}
-
-# 简易 YAML 读取器（与 create-directories 相同）
-function Read-YamlFlat {
-    param([string]$Path)
-    $result = @{}
-    foreach ($line in (Get-Content $Path)) {
-        if ($line -match '^\s*(\w[\w_-]*):\s*"?(.+?)"?\s*$') {
-            $result[$Matches[1]] = $Matches[2].Trim('"', '''')
-        }
-    }
-    return $result
-}
-
-$inv = Read-YamlFlat $Inventory
-
-Write-Log 'INFO' '正在检查 winget 可用性...'
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 try {
-    $wingetVersion = & winget --version 2>$null
-    Write-Log 'INFO' "winget: $wingetVersion"
+    Import-Module (Join-Path $projectRoot 'scripts\lib\Bootstrap.Common.psm1') -Force
+    Initialize-BootstrapRuntime -Component 'install-packages' -OutputFormat $OutputFormat
 } catch {
-    Write-Log 'ERROR' 'winget 不可用。请从 Microsoft Store 安装应用安装程序。'
+    [Console]::Error.WriteLine("[ERROR] $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')) [install-packages] Runtime initialization failed: $($_.Exception.Message)")
     exit 1
 }
 
-Write-Log 'INFO' '软件包安装功能在 Phase 1 中尚未实现。'
-Write-Log 'INFO' '这是一个占位脚本，后续将解析清单文件并通过 winget 安装。'
-Write-Log 'INFO' 'inventory 中的功能分组将从 manifests/ 目录读取。'
-Write-Log 'INFO' "DryRun: $DryRun, List: $List"
+function Show-Usage {
+    [Console]::Out.WriteLine(@'
+Usage: install-packages.ps1 -Inventory PATH [options]
+  -Inventory PATH          Inventory YAML file (required).
+  -DryRun                  Report the package plan without changes.
+  -List                    Report the package source files.
+  -OutputFormat text|json  Emit text records (default) or NDJSON records.
+  -Help                    Show this help.
+'@)
+}
 
-if ($DryRun -or $List) {
-    Write-Host ""
-    Write-Host '[试运行] 将解析清单文件并为已启用功能安装软件包。' -ForegroundColor Yellow
-    Write-Host '[试运行] 软件包来源: manifests\common.yaml, manifests\windows.yaml' -ForegroundColor Yellow
+if ($Help) { Show-Usage; exit 0 }
+
+try {
+    if (-not $Inventory) { throw '-Inventory is required.' }
+    Assert-BootstrapFile -Path $Inventory -Label 'Inventory'
+    Assert-BootstrapFile -Path (Join-Path $projectRoot 'manifests\common.yaml') -Label 'Common package manifest'
+    Assert-BootstrapFile -Path (Join-Path $projectRoot 'manifests\windows.yaml') -Label 'Windows package manifest'
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        $wingetVersion = & winget --version 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-BootstrapRecord -Level INFO -Message "Package manager: winget $wingetVersion"
+        } else {
+            Write-BootstrapRecord -Level WARN -Message 'winget exists but its version probe failed; the Phase-1 placeholder will still be reported.'
+        }
+    } else {
+        Write-BootstrapRecord -Level WARN -Message 'winget is unavailable; the Phase-1 placeholder will still be reported.'
+    }
+    Write-BootstrapRecord -Level INFO -Message "Inventory: $Inventory"
+    Write-BootstrapRecord -Level INFO -Message 'Package sources: manifests/common.yaml and manifests/windows.yaml.'
+    if ($DryRun -or $List) {
+        Write-BootstrapRecord -Level INFO -Message "Plan requested: dry_run=$($DryRun.IsPresent), list=$($List.IsPresent); no packages will be changed."
+    }
+    Write-BootstrapRecord -Level WARN -Message 'Package installation remains the original Phase-1 placeholder and is not applicable yet.'
+    exit 2
+} catch {
+    Write-BootstrapRecord -Level ERROR -Message $_.Exception.Message
+    exit 1
 }

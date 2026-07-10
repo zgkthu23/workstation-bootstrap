@@ -1,0 +1,366 @@
+schema_version: 1
+
+project:
+  name: workstation-bootstrap
+  description: Declarative workstation bootstrap for Windows, Ubuntu, and macOS.
+  agent_entry_point: AGENTS.md
+  machine_entry_point: MANIFEST.yaml
+  human_entry_point: README.md
+  canonical_launchers:
+    unix: run.sh
+    powershell: run.ps1
+
+agent:
+  read_order:
+    - AGENTS.md
+    - MANIFEST.yaml
+    - inventory/<selected-host>.yaml
+    - manifests/common.yaml
+    - manifests/<selected-os>.yaml
+    - projects/repos.yaml
+  discovery:
+    unix: bash run.sh --list-tasks --output-format json
+    powershell: .\run.ps1 -ListTasks -OutputFormat json
+  safe_start:
+    unix: bash run.sh --dry-run --output-format json
+    powershell: .\run.ps1 -DryRun -OutputFormat json
+  validation:
+    - uv run --quiet python tests/validate_manifests.py --output-format json
+    - uv run --quiet python tests/test_no_secrets.py --output-format json
+
+contracts:
+  cli:
+    concepts:
+      inventory:
+        unix: --inventory PATH
+        powershell: -Inventory PATH
+      manifest:
+        unix: --manifest PATH
+        powershell: -Manifest PATH
+      task:
+        unix: --task ID
+        powershell: -Task ID
+      dry_run:
+        unix: --dry-run
+        powershell: -DryRun
+      output_format:
+        unix: --output-format text|json
+        powershell: -OutputFormat text|json
+      help:
+        unix: --help
+        powershell: -Help
+  output:
+    default_format: text
+    agent_format: ndjson
+    text_record: "[LEVEL] ISO-8601-TIMESTAMP [COMPONENT] MESSAGE"
+    json_record_keys:
+      - schema_version
+      - timestamp
+      - level
+      - component
+      - message
+    levels:
+      - INFO
+      - WARN
+      - ERROR
+      - SUCCESS
+    stdout_levels:
+      - INFO
+      - WARN
+      - SUCCESS
+    stderr_levels:
+      - ERROR
+  exit_codes:
+    0: success
+    1: error
+    2: skipped or not applicable
+  child_processes:
+    allowed_exit_codes:
+      - 0
+      - 1
+      - 2
+    unexpected_exit_code: normalized to 1 by the orchestrator
+    workflow_skip_behavior: record and continue
+    selected_task_skip_behavior: propagate exit code 2
+  yaml_subset:
+    description: Runtime readers accept the repository's simple scalar/list subset.
+    constraint: Do not add anchors, aliases, tags, folded scalars, or computed keys.
+
+structure:
+  AGENTS.md: Stable Agent instructions and safe operating rules.
+  MANIFEST.yaml: Machine-readable repository map and execution contract.
+  inventory/: Host-specific paths, features, and project-group declarations.
+  manifests/: Shared and operating-system package declarations.
+  projects/: Repository declarations consumed by clone tasks.
+  scripts/lib/: Dependency-free logging and input helpers for both native shells.
+  scripts/unix/: Bash orchestrator, compatibility launcher, and Unix tasks.
+  scripts/windows/: PowerShell orchestrator, compatibility launcher, and tasks.
+  templates/: Non-secret configuration examples; never runtime credentials.
+  tests/: Independently runnable validation and secret-scan commands.
+  docs/: Human architecture, bootstrap, recovery, and security details.
+  dotfiles/: Reserved area for the documented future chezmoi integration.
+
+data_interfaces:
+  inventory:
+    files: inventory/*.yaml
+    required_keys:
+      - host
+      - os
+      - hostname
+      - workspace_root
+      - data_root
+      - scratch_root
+      - features
+      - project_groups
+    optional_keys:
+      - cloud_root
+      - git_user_name
+      - git_user_email
+  packages:
+    files:
+      - manifests/common.yaml
+      - manifests/windows.yaml
+      - manifests/ubuntu.yaml
+      - manifests/macos.yaml
+    implementation_status: Phase-1 placeholder; no packages are installed.
+  repositories:
+    file: projects/repos.yaml
+    required_project_keys:
+      - name
+      - url
+      - group
+      - directory
+      - hosts
+      - optional
+      - description
+    implementation_status: Phase-1 placeholder; no repositories are cloned.
+
+# Orchestrators read this list, sort by order, select their platform path, and
+# forward only named inputs. Keep values within the documented YAML subset.
+bootstrap_steps:
+  - id: create-directories
+    order: 10
+    windows: scripts/windows/create-directories.ps1
+    unix: scripts/unix/create-directories.sh
+    forwards: inventory,dry-run,output-format
+    skip_option: none
+    failure_policy: stop
+  - id: install-packages
+    order: 20
+    windows: scripts/windows/install-packages.ps1
+    unix: scripts/unix/install-packages.sh
+    forwards: inventory,dry-run,output-format
+    skip_option: skip-packages
+    failure_policy: continue
+  - id: clone-repositories
+    order: 30
+    windows: scripts/windows/clone-repositories.ps1
+    unix: scripts/unix/clone-repositories.sh
+    forwards: inventory,dry-run,output-format
+    skip_option: skip-repos
+    failure_policy: continue
+  - id: verify
+    order: 40
+    windows: scripts/windows/verify.ps1
+    unix: scripts/unix/verify.sh
+    forwards: inventory,output-format
+    skip_option: none
+    failure_policy: continue
+
+# Complete catalog of directly executable *.sh, *.ps1, and tests/*.py files.
+# Shared *.bash and *.psm1 files are modules and are documented in scripts/README.md.
+scripts:
+  - id: run-unix
+    path: run.sh
+    role: canonical-launcher
+    platform: windows,ubuntu,macos
+    counterpart: run.ps1
+    description: Selects the native orchestrator from a shell environment.
+    inputs:
+      - --inventory PATH
+      - --manifest PATH
+      - --task ID
+      - --dry-run
+      - --skip-packages
+      - --skip-repos
+      - --output-format text|json
+      - --list-tasks
+      - --help
+    outputs: text records or NDJSON with stdout/stderr separation
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: run-powershell
+    path: run.ps1
+    role: canonical-launcher
+    platform: windows,ubuntu,macos
+    counterpart: run.sh
+    description: Selects the native orchestrator from PowerShell.
+    inputs:
+      - -Inventory PATH
+      - -Manifest PATH
+      - -Task ID
+      - -DryRun
+      - -WhatIf
+      - -SkipPackages
+      - -SkipRepos
+      - -OutputFormat text|json
+      - -ListTasks
+      - -Help
+    outputs: text records or NDJSON with stdout/stderr separation
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: unix-orchestrator
+    path: scripts/unix/orchestrate.sh
+    role: orchestrator
+    platform: ubuntu,macos
+    counterpart: scripts/windows/orchestrate.ps1
+    description: Runs one Unix task or the manifest-ordered workflow.
+    inputs:
+      - --inventory PATH
+      - --manifest PATH
+      - --task ID
+      - --dry-run
+      - --skip-packages
+      - --skip-repos
+      - --output-format text|json
+      - --list-tasks
+      - --help
+    outputs: workflow and child text records or NDJSON
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: windows-orchestrator
+    path: scripts/windows/orchestrate.ps1
+    role: orchestrator
+    platform: windows
+    counterpart: scripts/unix/orchestrate.sh
+    description: Runs one Windows task or the manifest-ordered workflow.
+    inputs:
+      - -Inventory PATH
+      - -Manifest PATH
+      - -Task ID
+      - -DryRun
+      - -WhatIf
+      - -SkipPackages
+      - -SkipRepos
+      - -OutputFormat text|json
+      - -ListTasks
+      - -Help
+    outputs: workflow and child text records or NDJSON
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: unix-bootstrap-compatibility
+    path: scripts/unix/bootstrap.sh
+    role: compatibility-launcher
+    platform: ubuntu,macos
+    counterpart: scripts/windows/bootstrap.ps1
+    description: Preserves the legacy Unix bootstrap path.
+    inputs: [same as scripts/unix/orchestrate.sh]
+    outputs: delegated orchestrator records
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: windows-bootstrap-compatibility
+    path: scripts/windows/bootstrap.ps1
+    role: compatibility-launcher
+    platform: windows
+    counterpart: scripts/unix/bootstrap.sh
+    description: Preserves the legacy Windows bootstrap path.
+    inputs: [same as scripts/windows/orchestrate.ps1]
+    outputs: delegated orchestrator records
+    exit_codes: {0: success, 1: error, 2: selected-task-skipped}
+  - id: unix-create-directories
+    path: scripts/unix/create-directories.sh
+    role: task
+    platform: ubuntu,macos
+    counterpart: scripts/windows/create-directories.ps1
+    description: Creates the standard directory layout idempotently.
+    inputs: [--inventory PATH, --dry-run, --output-format text|json, --help]
+    outputs: directory action and summary records
+    exit_codes: {0: success, 1: error, 2: not-applicable}
+  - id: windows-create-directories
+    path: scripts/windows/create-directories.ps1
+    role: task
+    platform: windows
+    counterpart: scripts/unix/create-directories.sh
+    description: Creates the standard directory layout idempotently.
+    inputs: [-Inventory PATH, -DryRun, -OutputFormat text|json, -Help]
+    outputs: directory action and summary records
+    exit_codes: {0: success, 1: error, 2: not-applicable}
+  - id: unix-install-packages
+    path: scripts/unix/install-packages.sh
+    role: task
+    platform: ubuntu,macos
+    counterpart: scripts/windows/install-packages.ps1
+    description: Reports the retained package placeholder with exit code 2.
+    inputs: [--inventory PATH, --dry-run, --list, --output-format text|json, --help]
+    outputs: validated package-plan applicability records
+    exit_codes: {0: success, 1: error, 2: phase-1-placeholder}
+  - id: windows-install-packages
+    path: scripts/windows/install-packages.ps1
+    role: task
+    platform: windows
+    counterpart: scripts/unix/install-packages.sh
+    description: Reports the retained package placeholder with exit code 2.
+    inputs: [-Inventory PATH, -DryRun, -List, -OutputFormat text|json, -Help]
+    outputs: validated package-plan applicability records
+    exit_codes: {0: success, 1: error, 2: phase-1-placeholder}
+  - id: unix-clone-repositories
+    path: scripts/unix/clone-repositories.sh
+    role: task
+    platform: ubuntu,macos
+    counterpart: scripts/windows/clone-repositories.ps1
+    description: Reports the retained clone placeholder with exit code 2.
+    inputs: [--inventory PATH, --dry-run, --output-format text|json, --help]
+    outputs: validated repository-plan applicability records
+    exit_codes: {0: success, 1: error, 2: phase-1-placeholder}
+  - id: windows-clone-repositories
+    path: scripts/windows/clone-repositories.ps1
+    role: task
+    platform: windows
+    counterpart: scripts/unix/clone-repositories.sh
+    description: Reports the retained clone placeholder with exit code 2.
+    inputs: [-Inventory PATH, -DryRun, -OutputFormat text|json, -Help]
+    outputs: validated repository-plan applicability records
+    exit_codes: {0: success, 1: error, 2: phase-1-placeholder}
+  - id: unix-verify
+    path: scripts/unix/verify.sh
+    role: task
+    platform: ubuntu,macos
+    counterpart: scripts/windows/verify.ps1
+    description: Verifies prerequisites and repository integrity.
+    inputs: [--inventory PATH, --output-format text|json, --help]
+    outputs: prerequisite and validation summary records
+    exit_codes: {0: success, 1: verification-error, 2: not-applicable}
+  - id: windows-verify
+    path: scripts/windows/verify.ps1
+    role: task
+    platform: windows
+    counterpart: scripts/unix/verify.sh
+    description: Verifies prerequisites and repository integrity.
+    inputs: [-Inventory PATH, -OutputFormat text|json, -Help]
+    outputs: prerequisite and validation summary records
+    exit_codes: {0: success, 1: verification-error, 2: not-applicable}
+  - id: validate-project
+    path: tests/validate_manifests.py
+    role: validation
+    platform: windows,ubuntu,macos
+    counterpart: none
+    description: Validates the complete repository execution contract.
+    inputs: [--root PATH, --output-format text|json, --help]
+    outputs: repository contract validation records
+    exit_codes: {0: success, 1: validation-error, 2: not-applicable}
+  - id: scan-secrets
+    path: tests/test_no_secrets.py
+    role: validation
+    platform: windows,ubuntu,macos
+    counterpart: none
+    description: Scans text for likely accidentally committed credentials.
+    inputs: [--path PATH, --output-format text|json, --help]
+    outputs: credential scan records
+    exit_codes: {0: success, 1: finding-or-scan-error, 2: not-applicable}
+
+modules:
+  - id: unix-runtime
+    path: scripts/lib/common.bash
+    role: runtime-library
+    platform: ubuntu,macos
+    description: Shared logging, error trapping, file checks, and YAML scalar reads.
+  - id: windows-runtime
+    path: scripts/lib/Bootstrap.Common.psm1
+    role: runtime-library
+    platform: windows
+    description: Shared logging, file checks, and YAML scalar reads.

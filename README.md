@@ -1,98 +1,65 @@
 # workstation-bootstrap
 
-个人工作站基础设施即代码 —— 以声明式方式定义并重建开发机目录布局、软件包、dotfiles
-和 Git 项目结构，覆盖 Windows、Ubuntu 和 macOS。
+以声明式方式定义并重建 Windows、Ubuntu 和 macOS 开发机的目录布局、软件包计划、
+dotfiles 接口和 Git 项目结构。当前仓库既是人类可维护的基础设施配置，也是 Agent
+可发现、可组合、可解析执行的控制平面。
 
-## 管理范围
-
-- 目录结构（workspace、data、cloud、scratch 根目录）
-- 开发工具包和工具链
-- Dotfiles 和 Shell 配置
-- Git 项目布局和克隆目标
-- 环境变量模板
-
-## 不管理的内容
-
-- 个人文件、文档、照片、媒体
-- 云盘内容（OneDrive、Google Drive、iCloud）
-- 大型数据集和模型权重（使用 restic / 独立备份）
-- 应用数据、浏览器配置文件、聊天记录
-- 密钥、Token、SSH 私钥、API 密钥
-- 操作系统安装或磁盘分区
-
-## 支持的主机
-
-| 主机 | 操作系统 | 角色 |
-|------|---------|------|
-| windows-main | Windows 11 | 主力开发桌面 |
-| ubuntu-main | Ubuntu LTS | Linux 开发 / 服务器 |
-| macos-main | macOS | 移动 / 辅助开发 |
+Agent 从 [`AGENTS.md`](AGENTS.md) 开始；机器契约和完整执行图位于
+[`MANIFEST.yaml`](MANIFEST.yaml)。人类可直接使用根目录的 `run.ps1` 或 `run.sh`，
+原有 `scripts/<platform>/bootstrap.*` 路径继续兼容。
 
 ## 快速开始
 
-```powershell
-# Windows (PowerShell 7+)
-.\scripts\windows\bootstrap.ps1 -DryRun
-.\scripts\windows\bootstrap.ps1 -DryRun -WhatIf  # 别名
-```
-
-```bash
-# Ubuntu / macOS
-./scripts/unix/bootstrap.sh --dry-run
-```
-
-## 试运行示例
+PowerShell 7+：
 
 ```powershell
-# 显示将创建的目录
-.\scripts\windows\create-directories.ps1 -DryRun
-
-# 运行完整验证
-.\scripts\windows\verify.ps1 -Inventory .\inventory\windows-main.yaml
-
-# 完整试运行（仅创建目录 + 验证）
-.\scripts\windows\bootstrap.ps1 -DryRun
+.\run.ps1 -ListTasks
+.\run.ps1 -DryRun
+.\run.ps1 -Task create-directories -DryRun
+.\run.ps1 -DryRun -OutputFormat json
 ```
+
+Ubuntu / macOS：
 
 ```bash
-# Unix 等效命令
-./scripts/unix/create-directories.sh --dry-run --inventory inventory/ubuntu-main.yaml
-./scripts/unix/verify.sh --inventory inventory/ubuntu-main.yaml
-./scripts/unix/bootstrap.sh --dry-run
+bash ./run.sh --list-tasks
+bash ./run.sh --dry-run
+bash ./run.sh --task create-directories --dry-run
+bash ./run.sh --dry-run --output-format json
 ```
 
-> 注意：第一阶段中，软件包安装和仓库克隆为占位实现，会输出计划但不会执行实际安装。
+每个任务仍可直接运行，具体接口通过 `--help` / `-Help` 自描述；任务与平台映射见
+[`scripts/README.md`](scripts/README.md)。
 
-## 恢复：从零重建新机器
+## 稳定执行契约
 
-详见 `docs/recovery.md`。
+- `MANIFEST.yaml` 的 `bootstrap_steps` 是唯一执行顺序来源。
+- 文本输出固定为 `[LEVEL] ISO-8601 [COMPONENT] MESSAGE`。
+- JSON 输出为 NDJSON；每行包含 `schema_version`、`timestamp`、`level`、
+  `component` 和 `message`。
+- `INFO`、`WARN`、`SUCCESS` 写 stdout，`ERROR` 写 stderr。
+- 退出码 `0` 表示成功，`1` 表示失败，`2` 表示跳过或当前不适用。
+- 完整流程会记录子任务的 `2` 并继续；单任务模式会原样返回 `2`。
 
-## 添加新机器
+## 管理边界与当前功能
 
-1. 从 `inventory/` 复制现有清单文件
-2. 编辑路径、主机名、启用的功能组
-3. 将机器专属软件包添加到对应的清单中
-4. 试运行 → 验证 → 应用
+当前已实现并保持原有行为：
 
-详见 `docs/adding-a-machine.md`。
+- 按 inventory 幂等创建 workspace、data、cloud、scratch 与工作区子目录；
+- 校验 inventory、Git、包管理器、仓库清单和潜在密钥；
+- 通过 dry-run 安全预览目录变更；
+- 软件包安装和仓库克隆仍是 Phase 1 占位实现，不会执行实际变更。
 
-## 安全
+本仓库不管理个人文件、云盘内容、大型数据集、应用数据、密钥、操作系统安装或磁盘分区。
+inventory 和模板中的 `PUT_YOUR_*` 值必须在使用前按目标机器调整，但不得写入密钥。
 
-**此仓库必须保持私有。** 其中包含主机布局、已安装软件清单和项目 URL ——
-这些信息对攻击者有价值。
+## 验证
 
-切勿提交：
-- API 密钥、Token、密码
-- SSH 私钥
-- 包含真实值的 `.env` 文件
-- 浏览器或 Shell 历史记录
-- 云盘访问令牌
+```powershell
+uv run --quiet python tests/validate_manifests.py
+uv run --quiet python tests/test_no_secrets.py
+```
 
-详见 `docs/security.md`。
-
-## 状态
-
-阶段 1：框架、清单、试运行、验证 —— **已完成**
-阶段 2：实际软件包安装 —— 计划中
-阶段 3：Dotfile 部署（chezmoi）—— 计划中
-阶段 4：密钥管理集成 —— 计划中
+架构、引导、恢复和安全细节见 [`docs/architecture.md`](docs/architecture.md)、
+[`docs/bootstrap.md`](docs/bootstrap.md)、[`docs/recovery.md`](docs/recovery.md) 和
+[`docs/security.md`](docs/security.md)。

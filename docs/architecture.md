@@ -1,5 +1,24 @@
 # 架构
 
+## Agent 控制入口
+
+仓库采用“导航、契约、执行、任务、数据”五层结构：
+
+```text
+AGENTS.md                 Agent 阅读顺序与安全规则
+└── MANIFEST.yaml         结构、接口、执行图、脚本目录
+    ├── run.sh / run.ps1  跨平台规范入口
+    └── orchestrate.*     按 bootstrap_steps 选择和串联任务
+        └── task.*        可独立运行的幂等任务或显式占位任务
+
+inventory/ + manifests/ + projects/   声明式数据
+scripts/lib/                         双平台统一运行契约
+```
+
+Agent 不需要扫描整个仓库来推断入口或顺序。读取 `AGENTS.md` 和
+`MANIFEST.yaml` 后即可发现目标 inventory、平台脚本、参数转发、输出格式和退出码。
+脚本文件名不决定顺序，`bootstrap_steps.order` 才是执行顺序的唯一来源。
+
 ## 控制平面 vs 数据平面
 
 ```
@@ -119,20 +138,24 @@ WORKSPACE_ROOT/
 
 ## 脚本设计
 
-脚本采用分层架构：
+`MANIFEST.yaml` 是 Agent 和编排器共同读取的机器契约：
 
 ```
-bootstrap.{ps1,sh}          # 编排器
-    ├── create-directories  # 目录结构
-    ├── install-packages    # 包管理器
-    ├── clone-repositories  # Git 克隆
-    └── verify              # 引导后校验
+MANIFEST.yaml
+    └── run.{sh,ps1}                  # 跨平台入口
+        └── scripts/<platform>/orchestrate.*
+            ├── create-directories   # 目录结构
+            ├── install-packages     # Phase-1 占位，返回 2
+            ├── clone-repositories   # Phase-1 占位，返回 2
+            └── verify               # 引导后校验
+
+scripts/<platform>/bootstrap.*        # 原路径兼容入口
+scripts/lib/                          # 双平台共享运行契约
 ```
 
-所有脚本：
-- 严格错误处理（`set -euo pipefail` / `$ErrorActionPreference = 'Stop'`）
-- `--dry-run` / `-DryRun` 标志
-- 幂等（可安全重复执行）
-- 带时间戳的结构化日志
-- 人类可读的操作摘要
-- 失败时非零退出
+编排器从 `bootstrap_steps` 读取顺序、平台脚本路径、转发参数、跳过选项和失败策略，不在代码中重复定义执行图。旧的 `bootstrap.{ps1,sh}` 保留为兼容入口。
+
+所有脚本都有标准 `SCRIPT-METADATA` 自描述块和 `--help` / `-Help` 接口。
+默认文本输出和可选 NDJSON 输出拥有同一字段语义：stdout 使用 `INFO`、`WARN`、
+`SUCCESS`，stderr 使用 `ERROR`；退出码 `0` 表示成功、`1` 表示错误、`2` 表示
+跳过或不适用。任务既可独立运行，也可通过同一个清单执行图串联。

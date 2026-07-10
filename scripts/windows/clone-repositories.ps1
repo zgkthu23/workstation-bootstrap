@@ -1,60 +1,60 @@
 <#
-.SYNOPSIS
-    从 projects/repos.yaml 克隆 Git 仓库。
-.DESCRIPTION
-    读取 repos.yaml 并为当前主机克隆每个项目。
-    安全策略：不覆盖已有仓库，有未提交更改时不强制拉取。
-    支持试运行。
-.PARAMETER DryRun
-    展示将要克隆的仓库。
-.PARAMETER Inventory
-    inventory YAML 文件路径。
+SCRIPT-METADATA
+name: windows-clone-repositories
+description: Validates repository inputs and reports the retained Phase-1 clone placeholder.
+platform: windows
+inputs: -Inventory PATH, -DryRun, -OutputFormat text|json, -Help
+outputs: stdout=[INFO|WARN|SUCCESS] records; stderr=[ERROR] records
+exit_codes: 0=success, 1=error, 2=phase-1-placeholder-not-applicable
+END-SCRIPT-METADATA
 #>
-
 [CmdletBinding()]
 param(
+    [string]$Inventory,
     [switch]$DryRun,
-    [Parameter(Mandatory=$true)]
-    [string]$Inventory
+    [string]$OutputFormat = 'text',
+    [switch]$Help
 )
 
 $ErrorActionPreference = 'Stop'
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Resolve-Path "$scriptDir\..\.."
-
-function Write-Log {
-    param([string]$Level, [string]$Message)
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    Write-Host "[$timestamp] [$Level] $Message"
-}
-
-function Read-YamlFlat {
-    param([string]$Path)
-    $result = @{}
-    foreach ($line in (Get-Content $Path)) {
-        if ($line -match '^\s*(\w[\w_-]*):\s*"?(.+?)"?\s*$') {
-            $result[$Matches[1]] = $Matches[2].Trim('"', '''')
-        }
-    }
-    return $result
-}
-
-$inv = Read-YamlFlat $Inventory
-$reposYaml = "$projectRoot\projects\repos.yaml"
-
-if (-not (Test-Path $reposYaml)) {
-    Write-Log 'ERROR' "未找到 repos.yaml: $reposYaml"
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+try {
+    Import-Module (Join-Path $projectRoot 'scripts\lib\Bootstrap.Common.psm1') -Force
+    Initialize-BootstrapRuntime -Component 'clone-repositories' -OutputFormat $OutputFormat
+} catch {
+    [Console]::Error.WriteLine("[ERROR] $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')) [clone-repositories] Runtime initialization failed: $($_.Exception.Message)")
     exit 1
 }
 
-Write-Log 'INFO' "仓库配置: $reposYaml"
-Write-Log 'INFO' "工作区根目录: $($inv['workspace_root'])"
-Write-Log 'INFO' '仓库克隆功能是 Phase 1 占位实现。'
-Write-Log 'INFO' '完整实现将解析 repos.yaml 并克隆每个项目。'
-Write-Log 'INFO' '安全规则：不覆盖已有仓库，有未提交更改时不强制拉取，支持试运行。'
+function Show-Usage {
+    [Console]::Out.WriteLine(@'
+Usage: clone-repositories.ps1 -Inventory PATH [options]
+  -Inventory PATH          Inventory YAML file (required).
+  -DryRun                  Report the clone plan without changes.
+  -OutputFormat text|json  Emit text records (default) or NDJSON records.
+  -Help                    Show this help.
+'@)
+}
 
-if ($DryRun) {
-    Write-Host ""
-    Write-Host '[试运行] 将解析 repos.yaml 并为本机克隆仓库。' -ForegroundColor Yellow
-    Write-Host '[试运行] 目标: WORKSPACE_ROOT\repos\<group>\<directory>' -ForegroundColor Yellow
+if ($Help) { Show-Usage; exit 0 }
+
+try {
+    if (-not $Inventory) { throw '-Inventory is required.' }
+    Assert-BootstrapFile -Path $Inventory -Label 'Inventory'
+    $reposYaml = Join-Path $projectRoot 'projects\repos.yaml'
+    Assert-BootstrapFile -Path $reposYaml -Label 'Repository manifest'
+    $workspaceRoot = Read-BootstrapYamlScalar -Path $Inventory -Key 'workspace_root'
+    if (-not $workspaceRoot) { throw 'Inventory is missing workspace_root.' }
+
+    Write-BootstrapRecord -Level INFO -Message "Repository manifest: $reposYaml"
+    Write-BootstrapRecord -Level INFO -Message "Workspace root: $workspaceRoot"
+    if ($DryRun) {
+        Write-BootstrapRecord -Level INFO -Message 'Dry-run plan: targets would use WORKSPACE_ROOT\repos\<group>\<directory>.'
+    }
+    Write-BootstrapRecord -Level INFO -Message 'Safety policy: never overwrite an existing repository or force-update a dirty worktree.'
+    Write-BootstrapRecord -Level WARN -Message 'Repository cloning remains the original Phase-1 placeholder and is not applicable yet.'
+    exit 2
+} catch {
+    Write-BootstrapRecord -Level ERROR -Message $_.Exception.Message
+    exit 1
 }
