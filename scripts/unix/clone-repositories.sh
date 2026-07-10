@@ -17,7 +17,7 @@ log() {
 
 read_yaml_value() {
     local key="$1" file="$2"
-    grep -E "^\s*${key}:\s*" "$file" | head -1 | sed -E 's/^[^:]*:\s*"?([^"]*?)"?\s*$/\1/'
+    grep -E "^\s*${key}:\s*" "$file" | head -1 | sed -E 's/\s*#.*$//' | sed -E 's/^[^:]*:\s*"?([^"]*?)"?\s*$/\1/'
 }
 
 usage() {

@@ -44,41 +44,26 @@
 ## 试运行示例
 
 ```powershell
-# 列出将安装的软件包
-.\scripts\windows\install-packages.ps1 -DryRun -List
-
 # 显示将创建的目录
 .\scripts\windows\create-directories.ps1 -DryRun
 
-# 显示将克隆的仓库
-.\scripts\windows\clone-repositories.ps1 -DryRun
-
 # 运行完整验证
-.\scripts\windows\verify.ps1
+.\scripts\windows\verify.ps1 -Inventory .\inventory\windows-main.yaml
+
+# 完整试运行（仅创建目录 + 验证）
+.\scripts\windows\bootstrap.ps1 -DryRun
 ```
 
 ```bash
 # Unix 等效命令
-./scripts/unix/install-packages.sh --dry-run --list
-./scripts/unix/create-directories.sh --dry-run
-./scripts/unix/clone-repositories.sh --dry-run
-./scripts/unix/verify.sh
+./scripts/unix/create-directories.sh --dry-run --inventory inventory/ubuntu-main.yaml
+./scripts/unix/verify.sh --inventory inventory/ubuntu-main.yaml
+./scripts/unix/bootstrap.sh --dry-run
 ```
 
-## 恢复：从零重建新机器
+> 注意：第一阶段中，软件包安装和仓库克隆为占位实现，会输出计划但不会执行实际安装。
 
-1. 安装操作系统
-2. 安装 Git
-3. 配置 GitHub SSH 或 HTTPS 认证
-4. `git clone git@github.com:zgkthu23/workstation-bootstrap.git`
-5. 编辑 `inventory/` 中对应你机器的清单文件
-6. 试运行：`./scripts/unix/bootstrap.sh --dry-run`
-7. 检查输出，确认无误
-8. 执行：`./scripts/unix/bootstrap.sh`
-9. 从密码管理器恢复密钥
-10. 恢复云盘内容
-11. 恢复大型数据 / restic 快照
-12. 运行 `./scripts/unix/verify.sh`
+## 恢复：从零重建新机器
 
 详见 `docs/recovery.md`。
 
@@ -103,7 +88,7 @@
 - 浏览器或 Shell 历史记录
 - 云盘访问令牌
 
-详见 `docs/security.md` 和 `secrets/README.md`。
+详见 `docs/security.md`。
 
 ## 状态
 

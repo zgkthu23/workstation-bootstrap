@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  yaml:
-    name: YAML validation
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,21 +16,10 @@ jobs:
         run: pip install yamllint
       - name: Lint YAML files
         run: yamllint inventory/ manifests/ projects/ .github/
-
-  python:
-    name: Python tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install uv
-        run: pip install uv
       - name: Validate manifests
-        run: uv run python tests/validate_manifests.py
+        run: python3 tests/validate_manifests.py
       - name: Secret scan
-        run: uv run python tests/test_no_secrets.py
+        run: python3 tests/test_no_secrets.py
 
   shellcheck:
     name: Shell script checks
@@ -38,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run shellcheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@2.0.0
         with:
           scandir: "./scripts/unix"
 

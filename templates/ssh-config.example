@@ -20,7 +20,7 @@ Host github.com
 # ── 全局默认值 ─────────────────────────────────────────────────────────
 Host *
     AddKeysToAgent yes
-    UseKeychain yes      # 仅 macOS
-    # UseKeychain no     # Linux
+    IgnoreUnknown UseKeychain
+    # UseKeychain yes    # macOS: 取消此行注释，注释掉 IgnoreUnknown
     ServerAliveInterval 60
     ServerAliveCountMax 3

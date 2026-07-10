@@ -8,8 +8,6 @@
     仅展示将要执行的操作，不做实际修改。
 .PARAMETER WhatIf
     DryRun 的别名。
-.PARAMETER Force
-    覆盖已有文件和配置。
 .PARAMETER SkipPackages
     跳过软件包安装步骤。
 .PARAMETER SkipRepos
@@ -25,7 +23,6 @@
 param(
     [switch]$DryRun,
     [switch]$WhatIf,
-    [switch]$Force,
     [switch]$SkipPackages,
     [switch]$SkipRepos,
     [string]$Inventory
@@ -92,7 +89,6 @@ try {
 
 # 解析 inventory 文件
 if (-not $Inventory) {
-    $hostname = $env:COMPUTERNAME.ToLower()
     $inventoryPath = "$projectRoot\inventory\windows-main.yaml"
     if (-not (Test-Path $inventoryPath)) {
         Write-Log 'ERROR' "未找到 inventory 文件: $inventoryPath"
@@ -107,7 +103,6 @@ Write-Log 'INFO' "Inventory: $Inventory"
 Write-Step '步骤 1: 创建目录结构'
 $createDirsArgs = @{ Inventory = $Inventory }
 if ($isDryRun) { $createDirsArgs['DryRun'] = $true }
-if ($Force) { $createDirsArgs['Force'] = $true }
 & "$scriptDir\create-directories.ps1" @createDirsArgs
 if ($LASTEXITCODE -ne 0) {
     Write-Log 'ERROR' '目录创建失败'
@@ -143,7 +138,6 @@ if (-not $SkipRepos) {
 # 步骤 4：验证
 Write-Step '步骤 4: 验证'
 $verifyArgs = @{ Inventory = $Inventory }
-if ($isDryRun) { $verifyArgs['DryRun'] = $true }
 & "$scriptDir\verify.ps1" @verifyArgs
 $verifyExit = $LASTEXITCODE
 

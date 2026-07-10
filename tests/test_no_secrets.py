@@ -243,7 +243,6 @@ WHITELIST_PATTERNS = [
 
 def should_skip(path: Path) -> bool:
     """检查文件路径是否应跳过。"""
-    path_str = str(path).replace("\\", "/")
     for glob in SKIP_GLOBS:
         if path.match(glob):
             return True

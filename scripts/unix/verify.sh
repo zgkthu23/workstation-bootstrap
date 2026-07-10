@@ -7,7 +7,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-DRY_RUN=false
 INVENTORY=""
 
 log() {
@@ -24,11 +23,10 @@ log() {
 
 usage() {
     cat <<EOF
-用法: $(basename "$0") --inventory PATH [--dry-run]
+用法: $(basename "$0") --inventory PATH
 
 选项:
   --inventory PATH  指向 inventory YAML 文件的路径（必填）
-  --dry-run         仅展示将要验证的内容
   --help            显示此帮助信息
 EOF
     exit 0
@@ -36,7 +34,6 @@ EOF
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dry-run)   DRY_RUN=true ;;
         --inventory) INVENTORY="$2"; shift ;;
         --help|-h)   usage ;;
         *)           echo "未知选项: $1"; usage ;;
@@ -65,7 +62,7 @@ if [[ -f "$INVENTORY" ]]; then
     log 'PASS' "找到 inventory 文件: $INVENTORY"
 else
     log 'ERROR' "未找到 inventory 文件: $INVENTORY"
-    ((ERRORS++))
+    ((++ERRORS))
 fi
 
 # 3. Git
@@ -73,7 +70,7 @@ if command -v git &>/dev/null; then
     log 'PASS' "Git: $(git --version)"
 else
     log 'ERROR' 'Git 未安装'
-    ((ERRORS++))
+    ((++ERRORS))
 fi
 
 # 4. 包管理器
@@ -83,7 +80,7 @@ case "$(uname -s)" in
             log 'PASS' 'apt 可用'
         else
             log 'WARN' '未找到 apt'
-            ((WARNINGS++))
+            ((++WARNINGS))
         fi
         ;;
     Darwin)
@@ -91,7 +88,7 @@ case "$(uname -s)" in
             log 'PASS' "Homebrew: $(brew --version | head -1)"
         else
             log 'WARN' '未找到 Homebrew'
-            ((WARNINGS++))
+            ((++WARNINGS))
         fi
         ;;
 esac
@@ -102,7 +99,7 @@ if [[ -f "$REPOS_YAML" ]]; then
     log 'PASS' '找到 repos.yaml'
 else
     log 'ERROR' "未找到 repos.yaml: $REPOS_YAML"
-    ((ERRORS++))
+    ((++ERRORS))
 fi
 
 # 6. 密钥扫描
@@ -114,14 +111,14 @@ if [[ -f "$SECRETS_SCAN" ]]; then
             log 'PASS' '密钥扫描: 未发现问题'
         else
             log 'WARN' '密钥扫描发现问题（见上方输出）'
-            ((WARNINGS++))
+            ((++WARNINGS))
         fi
     else
         if python3 "$SECRETS_SCAN" 2>&1; then
             log 'PASS' '密钥扫描: 未发现问题'
         else
             log 'WARN' '密钥扫描发现问题（见上方输出）'
-            ((WARNINGS++))
+            ((++WARNINGS))
         fi
     fi
 fi

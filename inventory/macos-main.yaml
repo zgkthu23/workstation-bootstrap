@@ -34,10 +34,3 @@ project_groups:
 # Git 身份（模板 — 实际值在 bootstrap 时填入）
 git_user_name: "PUT_YOUR_NAME"
 git_user_email: "PUT_YOUR_EMAIL"
-
-# 可选安装项
-install_docker: true
-install_c_dev: true
-install_python_dev: true
-install_node_dev: true
-install_office: true

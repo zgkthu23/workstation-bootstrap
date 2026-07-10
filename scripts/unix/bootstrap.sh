@@ -8,7 +8,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 DRY_RUN=false
-FORCE=false
 SKIP_PACKAGES=false
 SKIP_REPOS=false
 INVENTORY=""
@@ -28,7 +27,6 @@ usage() {
 
 选项:
   --dry-run          仅展示将要执行的操作，不做实际修改
-  --force            覆盖已有文件和配置
   --skip-packages    跳过软件包安装步骤
   --skip-repos       跳过仓库克隆步骤
   --inventory PATH   指向 inventory YAML 文件的路径（默认：自动检测）
@@ -41,7 +39,6 @@ EOF
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)   DRY_RUN=true ;;
-        --force)     FORCE=true ;;
         --skip-packages) SKIP_PACKAGES=true ;;
         --skip-repos)    SKIP_REPOS=true ;;
         --inventory) INVENTORY="$2"; shift ;;
@@ -100,10 +97,9 @@ log 'INFO' "Inventory 文件: $INVENTORY"
 
 # ── 步骤 1: 创建目录 ─────────────────────────────────────────────────────
 step '步骤 1: 创建目录结构'
-CREATE_ARGS="--inventory $INVENTORY"
-$DRY_RUN && CREATE_ARGS="$CREATE_ARGS --dry-run"
-$FORCE && CREATE_ARGS="$CREATE_ARGS --force"
-"$SCRIPT_DIR/create-directories.sh" $CREATE_ARGS || {
+create_args=(--inventory "$INVENTORY")
+$DRY_RUN && create_args+=(--dry-run)
+"$SCRIPT_DIR/create-directories.sh" "${create_args[@]}" || {
     log 'ERROR' '目录创建失败'
     exit 1
 }
@@ -111,9 +107,9 @@ $FORCE && CREATE_ARGS="$CREATE_ARGS --force"
 # ── 步骤 2: 安装软件包 ───────────────────────────────────────────────────
 if ! $SKIP_PACKAGES; then
     step '步骤 2: 安装软件包'
-    INSTALL_ARGS="--inventory $INVENTORY"
-    $DRY_RUN && INSTALL_ARGS="$INSTALL_ARGS --dry-run"
-    "$SCRIPT_DIR/install-packages.sh" $INSTALL_ARGS || {
+    install_args=(--inventory "$INVENTORY")
+    $DRY_RUN && install_args+=(--dry-run)
+    "$SCRIPT_DIR/install-packages.sh" "${install_args[@]}" || {
         log 'WARN' '软件包安装出现错误（请查看上方输出）'
     }
 else
@@ -123,9 +119,9 @@ fi
 # ── 步骤 3: 克隆仓库 ─────────────────────────────────────────────────────
 if ! $SKIP_REPOS; then
     step '步骤 3: 克隆仓库'
-    CLONE_ARGS="--inventory $INVENTORY"
-    $DRY_RUN && CLONE_ARGS="$CLONE_ARGS --dry-run"
-    "$SCRIPT_DIR/clone-repositories.sh" $CLONE_ARGS || {
+    clone_args=(--inventory "$INVENTORY")
+    $DRY_RUN && clone_args+=(--dry-run)
+    "$SCRIPT_DIR/clone-repositories.sh" "${clone_args[@]}" || {
         log 'WARN' '仓库克隆出现错误（请查看上方输出）'
     }
 else
@@ -134,10 +130,13 @@ fi
 
 # ── 步骤 4: 验证 ─────────────────────────────────────────────────────────
 step '步骤 4: 验证'
-VERIFY_ARGS="--inventory $INVENTORY"
-$DRY_RUN && VERIFY_ARGS="$VERIFY_ARGS --dry-run"
-"$SCRIPT_DIR/verify.sh" $VERIFY_ARGS
-VERIFY_EXIT=$?
+verify_args=(--inventory "$INVENTORY")
+# 用 if 捕获退出码，避免 set -e 下 verify 失败导致后续代码不可达
+if "$SCRIPT_DIR/verify.sh" "${verify_args[@]}"; then
+    VERIFY_EXIT=0
+else
+    VERIFY_EXIT=$?
+fi
 
 step '引导完成'
 if $DRY_RUN; then

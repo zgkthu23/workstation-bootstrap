@@ -4,15 +4,12 @@
 .DESCRIPTION
     检查操作系统、主机名、inventory、目录、Git、包管理器
     和项目结构。发现问题时返回非零退出码。
-.PARAMETER DryRun
-    展示将要验证的内容。
 .PARAMETER Inventory
     inventory YAML 文件路径。
 #>
 
 [CmdletBinding()]
 param(
-    [switch]$DryRun,
     [Parameter(Mandatory=$true)]
     [string]$Inventory
 )
@@ -95,11 +92,11 @@ $secretsScan = "$projectRoot\tests\test_no_secrets.py"
 if (Test-Path $secretsScan) {
     Write-Log 'INFO' "正在运行密钥扫描..."
     try {
-        $result = & uv run python $secretsScan 2>&1
+        & uv run python $secretsScan 2>&1 | ForEach-Object { Write-Host $_ }
         if ($LASTEXITCODE -eq 0) {
             Write-Log 'PASS' '密钥扫描: 无问题'
         } else {
-            Write-Log 'WARN' '密钥扫描发现问题（请查看上方输出）'
+            Write-Log 'WARN' '密钥扫描发现问题（见上方输出）'
             $warnings++
         }
     } catch {

@@ -6,8 +6,6 @@
     支持幂等执行——可安全地多次运行。
 .PARAMETER DryRun
     展示将要创建的目录。
-.PARAMETER Force
-    对目录创建无效（mkdir -Force 本身是安全的）。
 .PARAMETER Inventory
     inventory YAML 文件路径。
 #>
@@ -15,14 +13,11 @@
 [CmdletBinding()]
 param(
     [switch]$DryRun,
-    [switch]$Force,
     [Parameter(Mandatory=$true)]
     [string]$Inventory
 )
 
 $ErrorActionPreference = 'Stop'
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Resolve-Path "$scriptDir\..\.."
 
 function Write-Log {
     param([string]$Level, [string]$Message)
@@ -38,6 +33,8 @@ function Read-Inventory {
     $result = @{}
     $lines = $content -split "`n"
     foreach ($line in $lines) {
+        # 先剥离行内注释
+        $line = $line -replace '\s*#.*$', ''
         if ($line -match '^\s*(\w[\w_]*):\s*"?(.+?)"?\s*$') {
             $key = $Matches[1]
             $value = $Matches[2].Trim('"', '''')
@@ -52,6 +49,12 @@ function Read-Inventory {
 }
 
 $inv = Read-Inventory $Inventory
+
+# 验证必填根目录
+if (-not ($inv['workspace_root'] -and $inv['data_root'] -and $inv['scratch_root'])) {
+    Write-Log 'ERROR' "inventory 文件缺少必填字段: workspace_root, data_root, scratch_root"
+    exit 1
+}
 
 $roots = @(
     $inv['workspace_root'],
