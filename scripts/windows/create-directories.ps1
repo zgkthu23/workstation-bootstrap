@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-    Create workspace directory structure for Windows.
+    创建 Windows 工作区目录结构。
 .DESCRIPTION
-    Reads inventory YAML and creates logical root directories plus
-    workspace layout. Idempotent — safe to run multiple times.
+    读取 inventory YAML 文件，创建逻辑根目录和工作区布局。
+    支持幂等执行——可安全地多次运行。
 .PARAMETER DryRun
-    Show what directories would be created.
+    展示将要创建的目录。
 .PARAMETER Force
-    Not used for directories (mkdir -Force is safe).
+    对目录创建无效（mkdir -Force 本身是安全的）。
 .PARAMETER Inventory
-    Path to inventory YAML file.
+    inventory YAML 文件路径。
 #>
 
 [CmdletBinding()]
@@ -30,8 +30,8 @@ function Write-Log {
     Write-Host "[$timestamp] [$Level] $Message"
 }
 
-# Simple YAML reader (no external dependency)
-# ponytail: minimal YAML parser for inventory — only handles the flat structure we use
+# 简易 YAML 读取器（无外部依赖）
+# ponytail: 极简 inventory YAML 解析器——仅处理我们使用的扁平结构
 function Read-Inventory {
     param([string]$Path)
     $content = Get-Content $Path -Raw
@@ -79,25 +79,25 @@ $workspaceDirs = @(
 $allDirs = $roots + $workspaceDirs
 
 Write-Log 'INFO' "Inventory: $Inventory"
-Write-Log 'INFO' "Roots: $($roots -join ', ')"
+Write-Log 'INFO' "根目录: $($roots -join ', ')"
 
 $created = 0
 $existed = 0
 
 foreach ($dir in $allDirs) {
     if (Test-Path $dir) {
-        Write-Log 'INFO' "Exists: $dir"
+        Write-Log 'INFO' "已存在: $dir"
         $existed++
     } else {
         if ($DryRun) {
-            Write-Host "  [DRY-RUN] Would create: $dir" -ForegroundColor Yellow
+            Write-Host "  [试运行] 将创建: $dir" -ForegroundColor Yellow
         } else {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Write-Log 'INFO' "Created: $dir"
+            Write-Log 'INFO' "已创建: $dir"
         }
         $created++
     }
 }
 
 Write-Host ""
-Write-Log 'INFO' "Summary: $existed already existed, $created to create" + $(if ($DryRun) { ' (dry-run)' } else { '' })
+Write-Log 'INFO' "汇总: $existed 个已存在, $created 个待创建" + $(if ($DryRun) { ' (试运行)' } else { '' })

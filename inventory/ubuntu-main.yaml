@@ -1,19 +1,19 @@
 # =============================================================================
-# Inventory: ubuntu-main
-# Ubuntu LTS development server / desktop
+# 主机清单：ubuntu-main
+# Ubuntu LTS 开发服务器 / 桌面
 # =============================================================================
 
 host: ubuntu-main
 os: ubuntu
 hostname: PUT_YOUR_UBUNTU_HOSTNAME_HERE
 
-# Logical root paths
+# 逻辑根路径
 workspace_root: /home/PUT_YOUR_USERNAME/workspace
 data_root: /home/PUT_YOUR_USERNAME/data
 cloud_root: /home/PUT_YOUR_USERNAME/cloud
 scratch_root: /home/PUT_YOUR_USERNAME/scratch
 
-# Enabled feature groups
+# 启用的功能组
 features:
   - common
   - c-development
@@ -22,7 +22,7 @@ features:
   - docker
   - research
 
-# Project groups to clone
+# 待克隆的项目组
 project_groups:
   - work
   - personal
@@ -30,11 +30,11 @@ project_groups:
   - tools
   - experiments
 
-# Git identity (template — real values set during bootstrap)
+# Git 身份（模板 — 实际值在 bootstrap 时填入）
 git_user_name: "PUT_YOUR_NAME"
 git_user_email: "PUT_YOUR_EMAIL"
 
-# Optional installations
+# 可选安装项
 install_docker: true
 install_c_dev: true
 install_python_dev: true

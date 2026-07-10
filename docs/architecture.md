@@ -1,139 +1,138 @@
-# Architecture
+# 架构
 
-## Control plane vs data plane
+## 控制平面 vs 数据平面
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                CONTROL PLANE                     │
-│        (this repo: workstation-bootstrap)        │
+│                控制平面                           │
+│        （本仓库：workstation-bootstrap）           │
 │                                                  │
 │  inventory/   manifests/   scripts/   dotfiles/  │
 │  ─────────   ──────────   ────────   ─────────  │
-│  host defs    feature       bootstrap  config    │
-│               groups        automation templates │
+│  主机定义     功能组        引导        配置      │
+│                           自动化       模板      │
 └─────────────────────────────────────────────────┘
          │                    │
          ▼                    ▼
 ┌─────────────────┐  ┌─────────────────────────────┐
-│    DATA PLANE   │  │       DATA PLANE             │
+│    数据平面      │  │       数据平面               │
 │   (workspace)   │  │   (cloud / data / scratch)   │
 │                 │  │                              │
-│  repos/         │  │  OneDrive, Google Drive,     │
-│  artifacts/     │  │  iCloud documents            │
+│  repos/         │  │  OneDrive、Google Drive、    │
+│  artifacts/     │  │  iCloud 文档                 │
 │  shared/        │  │                              │
-│                 │  │  Large datasets, models      │
-│  Under Git for  │  │  Backups (restic)            │
-│  each project   │  │                              │
+│                 │  │  大型数据集、模型             │
+│  各项目独立      │  │  备份（restic）              │
+│  Git 管理       │  │                              │
 └─────────────────┘  └─────────────────────────────┘
 ```
 
-This repo is the **control plane**. It describes what should exist.
-The **data plane** is the actual files on disk — repos, documents, datasets.
-The control plane never contains data plane contents.
+本仓库是**控制平面**。它描述应该存在什么。
+**数据平面**是磁盘上的实际文件 —— 仓库、文档、数据集。
+控制平面永远不包含数据平面的内容。
 
-## Logical directory model
+## 逻辑目录模型
 
-All hosts share the same logical model, mapped to host-specific absolute paths
-via inventory files.
+所有主机共享相同的逻辑模型，通过清单文件映射到各主机专属的绝对路径。
 
-| Logical root | Purpose | Windows default | Unix default |
-|-------------|---------|-----------------|--------------|
-| `WORKSPACE_ROOT` | Git repos, dev projects | `D:\workspace` | `$HOME/workspace` |
-| `DATA_ROOT` | Large data, models, datasets | `D:\data` | `$HOME/data` |
-| `CLOUD_ROOT` | Cloud drive documents | Inventory-defined | `$HOME/cloud` |
-| `SCRATCH_ROOT` | Temporary, disposable | `D:\scratch` | `$HOME/scratch` |
+| 逻辑根目录 | 用途 | Windows 默认路径 | Unix 默认路径 |
+|-----------|------|-----------------|--------------|
+| `WORKSPACE_ROOT` | Git 仓库、开发项目 | `C:\Users\zgk23\workspace` | `$HOME/workspace` |
+| `DATA_ROOT` | 大型数据、模型、数据集 | `C:\Users\zgk23\data` | `$HOME/data` |
+| `CLOUD_ROOT` | 云盘文档 | 清单中定义 | `$HOME/cloud` |
+| `SCRATCH_ROOT` | 临时、可丢弃文件 | `C:\Users\zgk23\scratch` | `$HOME/scratch` |
 
-## Workspace layout
+## 工作空间布局
 
 ```
 WORKSPACE_ROOT/
-├── repos/           # Git clones organized by category
-│   ├── work/        # Work projects
-│   ├── personal/    # Personal projects
-│   ├── research/    # Research / academic
-│   ├── tools/       # Third-party tools, utilities
-│   └── experiments/ # Throwaway prototypes
-├── artifacts/       # Built outputs, not under version control
-│   ├── releases/    # Binary releases
-│   ├── reports/     # Generated reports
-│   └── exports/     # Data exports
-└── shared/          # Shared resources across projects
-    ├── templates/   # Project templates
-    └── scripts/     # Shared utility scripts
+├── repos/           # 按分类组织的 Git 克隆
+│   ├── work/        # 工作项目
+│   ├── personal/    # 个人项目
+│   ├── research/    # 研究 / 学术
+│   ├── tools/       # 第三方工具、实用程序
+│   └── experiments/ # 一次性原型
+├── artifacts/       # 构建产物，不受版本控制
+│   ├── releases/    # 二进制发布
+│   ├── reports/     # 生成的报告
+│   └── exports/     # 数据导出
+└── shared/          # 跨项目共享资源
+    ├── templates/   # 项目模板
+    └── scripts/     # 共享实用脚本
 ```
 
-## Host inventory
+## 主机清单
 
-Each host has a YAML file in `inventory/` defining:
-- Identity (hostname, OS)
-- Physical path mappings
-- Enabled feature groups
-- Git user info templates
+`inventory/` 中每个主机有一个 YAML 文件，定义：
+- 身份信息（主机名、操作系统）
+- 物理路径映射
+- 启用的功能组
+- Git 用户信息模板
 
-No secrets in inventory files.
+清单文件中不含密钥。
 
-## Manifests
+## 清单
 
-`manifests/` defines *what* gets installed per feature group:
-- `common.yaml` — tools every machine needs
-- `windows.yaml` / `ubuntu.yaml` / `macos.yaml` — OS-specific additions
+`manifests/` 定义每个功能组*安装什么*：
+- `common.yaml` —— 每台机器都需要的工具
+- `windows.yaml` / `ubuntu.yaml` / `macos.yaml` —— 各操作系统专属补充
 
-## Feature groups
+## 功能组
 
-| Group | What it includes |
-|-------|-----------------|
-| `common` | Git, shell, editor, basic CLI tools |
-| `c-development` | GCC/Clang, CMake, make, debugger |
-| `python-development` | Python, uv, common libraries |
-| `node-development` | Node.js, npm, pnpm |
-| `docker` | Docker Engine, docker-compose |
-| `office` | Document tools, PDF readers |
-| `research` | LaTeX, Jupyter, scientific computing |
-| `optional` | Nice-to-have utilities |
+| 组 | 包含内容 |
+|----|---------|
+| `common` | Git、Shell、编辑器、基础 CLI 工具 |
+| `c-development` | GCC/Clang、CMake、make、调试器 |
+| `python-development` | Python、uv、常用库 |
+| `node-development` | Node.js、npm、pnpm |
+| `docker` | Docker Engine、docker-compose |
+| `office` | 文档工具、PDF 阅读器 |
+| `research` | LaTeX、Jupyter、科学计算 |
+| `optional` | 锦上添花的实用工具 |
 
-## Dotfiles strategy
+## Dotfiles 策略
 
-See dedicated section below.
+见下方专门章节。
 
-## Dotfiles: strategy comparison
+## Dotfiles：方案对比
 
-### Options evaluated
+### 已评估的方案
 
-| Approach | Pros | Cons | Verdict |
-|----------|------|------|---------|
-| **chezmoi** | Templating, diff, dry-run, cross-platform, secret management | One extra binary dependency | ✅ Recommended |
-| **GNU Stow** | Simple, symlink-based, no extra deps | No templating, manual per-machine | OK for Unix-only |
-| **Symlinks** | Zero deps, transparent | No templating, fragile on Windows, manual | Minimalist |
-| **Direct copy** | Dead simple | No version tracking, drift risk | ❌ Not recommended |
+| 方案 | 优点 | 缺点 | 结论 |
+|------|------|------|------|
+| **chezmoi** | 模板化、diff、试运行、跨平台、密钥管理 | 多一个二进制依赖 | ✅ 推荐 |
+| **GNU Stow** | 简单、基于符号链接、无额外依赖 | 无模板、需手动适配各机器 | 仅适用于纯 Unix |
+| **符号链接** | 零依赖、透明 | 无模板、Windows 下脆弱、需手动操作 | 极简方案 |
+| **直接复制** | 极其简单 | 无版本追踪、有漂移风险 | ❌ 不推荐 |
 
-### Recommendation: chezmoi
+### 推荐方案：chezmoi
 
-- Single binary, no runtime deps
-- Go templates for per-machine customization
-- Built-in diff and dry-run
-- `chezmoi apply` is idempotent
-- Password manager integration (1Password, Bitwarden, etc.)
-- Works on Windows, Linux, macOS
+- 单一二进制文件，无运行时依赖
+- 使用 Go 模板实现按机器定制
+- 内置 diff 和试运行
+- `chezmoi apply` 是幂等的
+- 密码管理器集成（1Password、Bitwarden 等）
+- 支持 Windows、Linux、macOS
 
-Phase 1: Integration interface defined, example dotfiles created.
-Phase 3: Full chezmoi configuration.
+阶段 1：集成接口已定义，示例 dotfiles 已创建。
+阶段 3：完整 chezmoi 配置。
 
-## Script design
+## 脚本设计
 
-Scripts follow a layered architecture:
+脚本采用分层架构：
 
 ```
-bootstrap.{ps1,sh}          # Orchestrator
-    ├── create-directories  # Directory structure
-    ├── install-packages    # Package managers
-    ├── clone-repositories  # Git clones
-    └── verify              # Post-bootstrap checks
+bootstrap.{ps1,sh}          # 编排器
+    ├── create-directories  # 目录结构
+    ├── install-packages    # 包管理器
+    ├── clone-repositories  # Git 克隆
+    └── verify              # 引导后校验
 ```
 
-All scripts:
-- Strict error handling (`set -euo pipefail` / `$ErrorActionPreference = 'Stop'`)
-- `--dry-run` / `-DryRun` flag
-- Idempotent (safe to re-run)
-- Structured logging with timestamps
-- Human-readable action summaries
-- Non-zero exit on failure
+所有脚本：
+- 严格错误处理（`set -euo pipefail` / `$ErrorActionPreference = 'Stop'`）
+- `--dry-run` / `-DryRun` 标志
+- 幂等（可安全重复执行）
+- 带时间戳的结构化日志
+- 人类可读的操作摘要
+- 失败时非零退出

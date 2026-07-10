@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-    Clone Git repositories from projects/repos.yaml.
+    从 projects/repos.yaml 克隆 Git 仓库。
 .DESCRIPTION
-    Reads repos.yaml and clones each project for the current host.
-    Safe: won't overwrite existing repos, won't pull if dirty.
-    Supports dry-run.
+    读取 repos.yaml 并为当前主机克隆每个项目。
+    安全策略：不覆盖已有仓库，有未提交更改时不强制拉取。
+    支持试运行。
 .PARAMETER DryRun
-    Show what repos would be cloned.
+    展示将要克隆的仓库。
 .PARAMETER Inventory
-    Path to inventory YAML file.
+    inventory YAML 文件路径。
 #>
 
 [CmdletBinding()]
@@ -43,18 +43,18 @@ $inv = Read-YamlFlat $Inventory
 $reposYaml = "$projectRoot\projects\repos.yaml"
 
 if (-not (Test-Path $reposYaml)) {
-    Write-Log 'ERROR' "repos.yaml not found: $reposYaml"
+    Write-Log 'ERROR' "未找到 repos.yaml: $reposYaml"
     exit 1
 }
 
-Write-Log 'INFO' "Repos config: $reposYaml"
-Write-Log 'INFO' "Workspace root: $($inv['workspace_root'])"
-Write-Log 'INFO' 'Repository cloning is a Phase 1 placeholder.'
-Write-Log 'INFO' 'Full implementation will parse repos.yaml and clone each project.'
-Write-Log 'INFO' 'Safety rules: no overwrite, no force-pull on dirty repos, dry-run support.'
+Write-Log 'INFO' "仓库配置: $reposYaml"
+Write-Log 'INFO' "工作区根目录: $($inv['workspace_root'])"
+Write-Log 'INFO' '仓库克隆功能是 Phase 1 占位实现。'
+Write-Log 'INFO' '完整实现将解析 repos.yaml 并克隆每个项目。'
+Write-Log 'INFO' '安全规则：不覆盖已有仓库，有未提交更改时不强制拉取，支持试运行。'
 
 if ($DryRun) {
     Write-Host ""
-    Write-Host '[DRY-RUN] Would parse repos.yaml and clone repos for this host.' -ForegroundColor Yellow
-    Write-Host '[DRY-RUN] Target: WORKSPACE_ROOT\repos\<group>\<directory>' -ForegroundColor Yellow
+    Write-Host '[试运行] 将解析 repos.yaml 并为本机克隆仓库。' -ForegroundColor Yellow
+    Write-Host '[试运行] 目标: WORKSPACE_ROOT\repos\<group>\<directory>' -ForegroundColor Yellow
 }

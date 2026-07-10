@@ -1,75 +1,75 @@
-# Security
+# 安全
 
-## Repository classification
+## 仓库分类
 
-This repository should be **private**. It contains:
-- Host layout and installed software inventory
-- Project URLs and organization
-- Development environment configuration
+此仓库应保持**私有**。其中包含：
+- 主机布局和已安装软件清单
+- 项目 URL 和组织结构
+- 开发环境配置
 
-An attacker with access to this repo could:
-- Map your development infrastructure
-- Identify installed software versions for targeted exploits
-- Discover internal project URLs and repository names
+能够访问此仓库的攻击者可能：
+- 绘制你的开发基础设施地图
+- 识别已安装软件版本以进行定向攻击
+- 发现内部项目 URL 和仓库名称
 
-## What is allowed in this repo
+## 仓库中允许的内容
 
-| Category | Allowed | Examples |
-|----------|---------|----------|
-| Configuration templates | ✅ | `.env.example`, `config.yaml.example` |
-| Environment variable names | ✅ | `DATABASE_URL`, `API_KEY` (names only) |
-| Password manager entry names | ✅ | `"GitHub PAT"`, `"AWS Access Key"` |
-| Public keys | ✅ | `id_ed25519.pub`, `*.pub` |
-| Example files | ✅ | Files with `.example` extension |
-| Package lists | ✅ | `apt-packages.txt`, `Brewfile` |
-| Directory structure | ✅ | Paths, layout definitions |
+| 类别 | 允许 | 示例 |
+|------|------|------|
+| 配置模板 | ✅ | `.env.example`、`config.yaml.example` |
+| 环境变量名 | ✅ | `DATABASE_URL`、`API_KEY`（仅名称） |
+| 密码管理器条目名 | ✅ | `"GitHub PAT"`、`"AWS Access Key"` |
+| 公钥 | ✅ | `id_ed25519.pub`、`*.pub` |
+| 示例文件 | ✅ | 带 `.example` 扩展名的文件 |
+| 软件包列表 | ✅ | `apt-packages.txt`、`Brewfile` |
+| 目录结构 | ✅ | 路径、布局定义 |
 
-## What is NEVER allowed
+## 绝对禁止的内容
 
-| Category | Examples |
-|----------|----------|
-| API keys | `sk-...`, `ghp_...`, `xoxb-...` |
-| Private keys | `id_rsa`, `*.pem`, `*.key` |
-| Passwords | Database passwords, service passwords |
-| Tokens | GitHub PAT, OpenAI keys, Claude keys |
-| Cookies | Browser cookies, session tokens |
-| Real `.env` files | `.env`, `.env.local`, `.env.production` |
-| Company credentials | Work passwords, VPN configs with secrets |
-| Browser data | Chrome/Firefox profiles, history |
-| Shell history | `.bash_history`, `.zsh_history` |
-| SSH config with hosts | Real hostnames and IPs in `~/.ssh/config` |
+| 类别 | 示例 |
+|------|------|
+| API 密钥 | `sk-...`、`ghp_...`、`xoxb-...` |
+| 私钥 | `id_rsa`、`*.pem`、`*.key` |
+| 密码 | 数据库密码、服务密码 |
+| 令牌 | GitHub PAT、OpenAI 密钥、Claude 密钥 |
+| Cookie | 浏览器 Cookie、会话令牌 |
+| 真实 `.env` 文件 | `.env`、`.env.local`、`.env.production` |
+| 公司凭证 | 工作密码、含密钥的 VPN 配置 |
+| 浏览器数据 | Chrome/Firefox 配置文件、历史记录 |
+| Shell 历史 | `.bash_history`、`.zsh_history` |
+| 含主机的 SSH 配置 | `~/.ssh/config` 中的真实主机名和 IP |
 
-## Pre-commit protection
+## 提交前保护
 
-The `tests/test_no_secrets.py` scan runs on every commit (via GitHub Actions)
-and can be run locally:
+`tests/test_no_secrets.py` 扫描在每次提交时运行（通过 GitHub Actions），
+也可在本地运行：
 
 ```bash
 uv run python tests/test_no_secrets.py
 ```
 
-It scans for:
-- Private key headers (`-----BEGIN.*PRIVATE KEY-----`)
-- API key patterns (`sk-*`, `ghp_*`, `xoxb-*`, etc.)
-- Secret assignments (`SECRET=`, `TOKEN=`, `PASSWORD=`)
-- AWS key patterns (`AKIA*`, `ASIA*`)
-- High-entropy base64 strings in suspicious contexts
+扫描内容：
+- 私钥头（`-----BEGIN.*PRIVATE KEY-----`）
+- API 密钥模式（`sk-*`、`ghp_*`、`xoxb-*` 等）
+- 密钥赋值（`SECRET=`、`TOKEN=`、`PASSWORD=`）
+- AWS 密钥模式（`AKIA*`、`ASIA*`）
+- 可疑上下文中的高熵 base64 字符串
 
-## If you accidentally commit a secret
+## 如果不小心提交了密钥
 
-1. **Rotate the secret immediately** — revoke and regenerate
-2. Run `git filter-branch` or `git filter-repo` to purge from history
-3. Force push
-4. Verify with `test_no_secrets.py`
+1. **立即轮换密钥** —— 撤销并重新生成
+2. 运行 `git filter-branch` 或 `git filter-repo` 从历史记录中清除
+3. 强制推送
+4. 用 `test_no_secrets.py` 验证
 
-## Password manager integration
+## 密码管理器集成
 
-All secrets should live in a password manager (1Password, Bitwarden, etc.).
-This repo references them by entry name only.
+所有密钥应存放在密码管理器（1Password、Bitwarden 等）中。
+本仓库仅通过条目名称引用它们。
 
-Example: `templates/env.example` contains:
+示例：`templates/env.example` 包含：
 ```
-# Copy to .env and fill from password manager
-DATABASE_URL=    # Bitwarden: "project-db-url"
-API_KEY=         # 1Password: "project-api-key"
+# 复制到 .env 并从密码管理器填入
+DATABASE_URL=    # Bitwarden："project-db-url"
+API_KEY=         # 1Password："project-api-key"
 ```

@@ -1,6 +1,6 @@
 {
-  "_description": "Windows package manifest for winget. Phase 1: placeholder structure.",
-  "_note": "Packages are defined in manifests/windows.yaml. This file is a winget-specific export format for future use.",
+  "_description": "Windows 包清单（winget 格式）。第一阶段：占位结构。",
+  "_note": "包定义在 manifests/windows.yaml 中。此文件是 winget 专用的导出格式，供将来使用。",
   "packages": {
     "common": [
       "Git.Git",

@@ -1,8 +1,8 @@
 # =============================================================================
-# Windows dotfiles placeholder
+# Windows dotfiles 占位文件
 # =============================================================================
-# Phase 1: dotfiles are not deployed.
+# 第一阶段：dotfiles 不会部署。
 #
-# Phase 3 will populate:
+# 第三阶段将填充：
 #   Microsoft.PowerShell_profile.ps1.tmpl
 #   .winterminal/settings.json.tmpl

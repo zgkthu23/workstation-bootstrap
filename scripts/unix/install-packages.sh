@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Install packages for Unix (apt / Homebrew)
+# 为 Unix 安装软件包（apt / Homebrew）
 # ==============================================================================
 set -euo pipefail
 
@@ -18,13 +18,13 @@ log() {
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") --inventory PATH [--dry-run] [--list]
+用法: $(basename "$0") --inventory PATH [--dry-run] [--list]
 
-Options:
-  --inventory PATH  Path to inventory YAML file (required)
-  --dry-run         Show what packages would be installed
-  --list            List packages for enabled features
-  --help            Show this help
+选项:
+  --inventory PATH  指向 inventory YAML 文件的路径（必填）
+  --dry-run         仅展示将要安装的软件包
+  --list            列出已启用的功能所需的软件包
+  --help            显示此帮助信息
 EOF
     exit 0
 }
@@ -35,47 +35,47 @@ while [[ $# -gt 0 ]]; do
         --list)      LIST=true ;;
         --inventory) INVENTORY="$2"; shift ;;
         --help|-h)   usage ;;
-        *)           echo "Unknown option: $1"; usage ;;
+        *)           echo "未知选项: $1"; usage ;;
     esac
     shift
 done
 
 if [[ -z "$INVENTORY" ]]; then
-    log 'ERROR' '--inventory is required'
+    log 'ERROR' '--inventory 参数为必填项'
     exit 1
 fi
 
 OS="$(uname -s)"
-log 'INFO' "OS: $OS"
+log 'INFO' "操作系统: $OS"
 
 case "$OS" in
     Linux)
         if command -v apt &>/dev/null; then
-            log 'INFO' "Package manager: apt"
+            log 'INFO' "包管理器: apt"
         else
-            log 'ERROR' 'apt not found (only apt-based Linux is supported in Phase 1)'
+            log 'ERROR' '未找到 apt（第一阶段仅支持基于 apt 的 Linux 发行版）'
             exit 1
         fi
         ;;
     Darwin)
         if command -v brew &>/dev/null; then
-            log 'INFO' "Package manager: $(brew --version | head -1)"
+            log 'INFO' "包管理器: $(brew --version | head -1)"
         else
-            log 'WARN' 'Homebrew not found — install it first: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+            log 'WARN' '未找到 Homebrew — 请先安装: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
         fi
         ;;
     *)
-        log 'ERROR' "Unsupported OS: $OS"
+        log 'ERROR' "不支持的操作系统: $OS"
         exit 1
         ;;
 esac
 
-log 'INFO' 'Package installation is a Phase 1 placeholder.'
-log 'INFO' 'Full implementation will parse manifests and install via apt/brew.'
-log 'INFO' "DryRun: $DRY_RUN, List: $LIST"
+log 'INFO' '软件包安装为第一阶段占位实现。'
+log 'INFO' '完整实现将解析 manifest 文件并通过 apt/brew 安装。'
+log 'INFO' "模拟运行: $DRY_RUN, 列表模式: $LIST"
 
 if $DRY_RUN || $LIST; then
     echo ''
-    echo '[DRY-RUN] Would parse manifests and install packages for enabled features.'
-    echo '[DRY-RUN] Packages would come from: manifests/common.yaml, manifests/<os>.yaml'
+    echo '[模拟运行] 将解析 manifest 并为已启用的功能安装软件包。'
+    echo '[模拟运行] 软件包来源: manifests/common.yaml, manifests/<os>.yaml'
 fi

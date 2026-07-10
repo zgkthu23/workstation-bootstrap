@@ -1,45 +1,45 @@
-# Bootstrap process
+# 引导流程
 
-## Overview
+## 概述
 
-Bootstrap is the orchestrator that runs all setup scripts in order.
+引导是编排器，按顺序运行所有安装脚本。
 
-## Order of operations
+## 操作顺序
 
-1. **Pre-flight checks** — OS detected, Git installed, inventory found
-2. **Create directories** — Logical root directories and workspace layout
-3. **Install packages** — OS packages and development toolchains
-4. **Clone repositories** — Git projects from `projects/repos.yaml`
-5. **Verify** — Post-bootstrap validation
+1. **预检** —— 检测操作系统、确认 Git 已安装、找到清单文件
+2. **创建目录** —— 逻辑根目录和工作空间布局
+3. **安装软件包** —— 操作系统软件包和开发工具链
+4. **克隆仓库** —— 来自 `projects/repos.yaml` 的 Git 项目
+5. **验证** —— 引导后校验
 
-## Dry-run mode
+## 试运行模式
 
-All scripts support dry-run. In dry-run mode:
-- No filesystem changes
-- No package installation
-- No git clone operations
-- Output is a human-readable plan of what *would* happen
+所有脚本支持试运行。在试运行模式下：
+- 不会修改文件系统
+- 不会安装软件包
+- 不会执行 git clone 操作
+- 输出是人类可读的计划，展示*将会*发生什么
 
-## Idempotency
+## 幂等性
 
-Scripts are designed to be safe to run multiple times:
-- Directory creation: `mkdir -p` (no-op if exists)
-- Package install: skip if already installed
-- Git clone: skip if directory exists and is a git repo
-- Dotfiles: skip if target exists (unless `--force`)
+脚本设计为可安全多次执行：
+- 目录创建：`mkdir -p`（已存在则跳过）
+- 软件包安装：已安装则跳过
+- Git 克隆：目录已存在且是 git 仓库则跳过
+- Dotfiles：目标已存在则跳过（除非使用 `--force`）
 
-## Error handling
+## 错误处理
 
-- Single package failure does not stop the entire run
-- Single repo clone failure does not stop other clones
-- Errors are collected and reported at the end
-- Exit code reflects overall success/failure
+- 单个软件包失败不会中断整个运行
+- 单个仓库克隆失败不会阻止其他克隆
+- 错误在运行结束时汇总报告
+- 退出码反映整体成功/失败
 
-## Post-bootstrap
+## 引导后操作
 
-After bootstrap completes:
-1. Run `verify` script
-2. Restore secrets from password manager
-3. Restore cloud drive contents
-4. Restore large data from backup
-5. Review and install any manual-only software
+引导完成后：
+1. 运行 `verify` 脚本
+2. 从密码管理器恢复密钥
+3. 恢复云盘内容
+4. 从备份恢复大型数据
+5. 检查并安装只能手动安装的软件

@@ -1,40 +1,39 @@
 # workstation-bootstrap
 
-Personal workstation infrastructure-as-code — declaratively define and rebuild
-dev machine layout, packages, dotfiles, and Git project layout across Windows,
-Ubuntu, and macOS.
+个人工作站基础设施即代码 —— 以声明式方式定义并重建开发机目录布局、软件包、dotfiles
+和 Git 项目结构，覆盖 Windows、Ubuntu 和 macOS。
 
-## What this manages
+## 管理范围
 
-- Directory structure (workspace, data, cloud, scratch roots)
-- Development packages and toolchains
-- Dotfiles and shell configuration
-- Git project layout and clone targets
-- Environment variable templates
+- 目录结构（workspace、data、cloud、scratch 根目录）
+- 开发工具包和工具链
+- Dotfiles 和 Shell 配置
+- Git 项目布局和克隆目标
+- 环境变量模板
 
-## What this does NOT manage
+## 不管理的内容
 
-- Personal files, documents, photos, media
-- Cloud drive contents (OneDrive, Google Drive, iCloud)
-- Large datasets and model weights (restic / separate backup)
-- Application data, browser profiles, chat histories
-- Secrets, tokens, SSH private keys, API keys
-- Operating system installation or disk partitioning
+- 个人文件、文档、照片、媒体
+- 云盘内容（OneDrive、Google Drive、iCloud）
+- 大型数据集和模型权重（使用 restic / 独立备份）
+- 应用数据、浏览器配置文件、聊天记录
+- 密钥、Token、SSH 私钥、API 密钥
+- 操作系统安装或磁盘分区
 
-## Supported hosts
+## 支持的主机
 
-| Host | OS | Role |
-|------|----|------|
-| windows-main | Windows 11 | Primary dev desktop |
-| ubuntu-main | Ubuntu LTS | Linux dev / server |
-| macos-main | macOS | Mobile / secondary dev |
+| 主机 | 操作系统 | 角色 |
+|------|---------|------|
+| windows-main | Windows 11 | 主力开发桌面 |
+| ubuntu-main | Ubuntu LTS | Linux 开发 / 服务器 |
+| macos-main | macOS | 移动 / 辅助开发 |
 
-## Quick start
+## 快速开始
 
 ```powershell
 # Windows (PowerShell 7+)
 .\scripts\windows\bootstrap.ps1 -DryRun
-.\scripts\windows\bootstrap.ps1 -DryRun -WhatIf  # alias
+.\scripts\windows\bootstrap.ps1 -DryRun -WhatIf  # 别名
 ```
 
 ```bash
@@ -42,73 +41,73 @@ Ubuntu, and macOS.
 ./scripts/unix/bootstrap.sh --dry-run
 ```
 
-## Dry-run examples
+## 试运行示例
 
 ```powershell
-# List what packages would be installed
+# 列出将安装的软件包
 .\scripts\windows\install-packages.ps1 -DryRun -List
 
-# Show what directories would be created
+# 显示将创建的目录
 .\scripts\windows\create-directories.ps1 -DryRun
 
-# Show what repos would be cloned
+# 显示将克隆的仓库
 .\scripts\windows\clone-repositories.ps1 -DryRun
 
-# Run full verification
+# 运行完整验证
 .\scripts\windows\verify.ps1
 ```
 
 ```bash
-# Unix equivalents
+# Unix 等效命令
 ./scripts/unix/install-packages.sh --dry-run --list
 ./scripts/unix/create-directories.sh --dry-run
 ./scripts/unix/clone-repositories.sh --dry-run
 ./scripts/unix/verify.sh
 ```
 
-## Recovery: new machine from scratch
+## 恢复：从零重建新机器
 
-1. Install OS
-2. Install Git
-3. Configure GitHub SSH or HTTPS auth
+1. 安装操作系统
+2. 安装 Git
+3. 配置 GitHub SSH 或 HTTPS 认证
 4. `git clone git@github.com:zgkthu23/workstation-bootstrap.git`
-5. Edit your machine's inventory file in `inventory/`
-6. Run dry-run: `./scripts/unix/bootstrap.sh --dry-run`
-7. Review output, confirm
-8. Run: `./scripts/unix/bootstrap.sh`
-9. Restore secrets from password manager
-10. Restore cloud drive contents
-11. Restore large data / restic snapshots
-12. Run `./scripts/unix/verify.sh`
+5. 编辑 `inventory/` 中对应你机器的清单文件
+6. 试运行：`./scripts/unix/bootstrap.sh --dry-run`
+7. 检查输出，确认无误
+8. 执行：`./scripts/unix/bootstrap.sh`
+9. 从密码管理器恢复密钥
+10. 恢复云盘内容
+11. 恢复大型数据 / restic 快照
+12. 运行 `./scripts/unix/verify.sh`
 
-See `docs/recovery.md` for detailed steps.
+详见 `docs/recovery.md`。
 
-## Adding a new machine
+## 添加新机器
 
-1. Copy an existing inventory file from `inventory/`
-2. Edit paths, hostname, enabled feature groups
-3. Add any machine-specific packages to the appropriate manifest
-4. Run dry-run → verify → apply
+1. 从 `inventory/` 复制现有清单文件
+2. 编辑路径、主机名、启用的功能组
+3. 将机器专属软件包添加到对应的清单中
+4. 试运行 → 验证 → 应用
 
-See `docs/adding-a-machine.md`.
+详见 `docs/adding-a-machine.md`。
 
-## Security
+## 安全
 
-**This repo must remain private.** It contains host layout, installed software
-inventory, and project URLs — information useful to an attacker.
+**此仓库必须保持私有。** 其中包含主机布局、已安装软件清单和项目 URL ——
+这些信息对攻击者有价值。
 
-Never commit:
-- API keys, tokens, passwords
-- SSH private keys
-- `.env` files with real values
-- Browser or shell history
-- Cloud drive access tokens
+切勿提交：
+- API 密钥、Token、密码
+- SSH 私钥
+- 包含真实值的 `.env` 文件
+- 浏览器或 Shell 历史记录
+- 云盘访问令牌
 
-See `docs/security.md` and `secrets/README.md`.
+详见 `docs/security.md` 和 `secrets/README.md`。
 
-## Status
+## 状态
 
-Phase 1: Framework, inventory, dry-run, verify — **done**
-Phase 2: Actual package installation — planned
-Phase 3: Dotfile deployment (chezmoi) — planned
-Phase 4: Secrets management integration — planned
+阶段 1：框架、清单、试运行、验证 —— **已完成**
+阶段 2：实际软件包安装 —— 计划中
+阶段 3：Dotfile 部署（chezmoi）—— 计划中
+阶段 4：密钥管理集成 —— 计划中

@@ -1,34 +1,29 @@
-# Secrets
+# 密钥
 
-This directory is intentionally empty except for this README.
+本目录仅包含此 README，不存放任何实际文件。
 
-## What belongs here
+## 这里应该放什么
 
-Nothing. This directory is a placeholder to remind you that secrets
-are managed OUTSIDE this repository.
+什么都不放。这个目录是一个占位符，提醒你密钥在本仓库之外管理。
 
-## How secrets are managed
+## 密钥如何管理
 
-All secrets (API keys, tokens, passwords, SSH private keys) are stored in
-a password manager (1Password, Bitwarden, etc.) and referenced by entry name
-in templates and scripts.
+所有密钥（API 密钥、Token、密码、SSH 私钥）存储在密码管理器（1Password、Bitwarden 等）中，在模板和脚本中通过条目名称引用。
 
-## Recovery
+## 恢复流程
 
-When setting up a new machine:
-1. Install your password manager
-2. Sign in and sync your vault
-3. Use the templates in `../templates/` to create real config files
-4. Never commit those real files to this repo
+在新机器上设置时：
+1. 安装你的密码管理器
+2. 登录并同步你的保险库
+3. 使用 `../templates/` 中的模板创建实际配置文件
+4. 切勿将那些实际文件提交到本仓库
 
-## What this repo references
+## 本仓库引用的内容
 
-- `templates/env.example` — lists environment variable names
-- `templates/gitconfig.example` — git config without real email
-- `templates/ssh-config.example` — SSH config without real hostnames
+- `templates/env.example` — 列出环境变量名称
+- `templates/gitconfig.example` — 不含真实邮箱的 git 配置
+- `templates/ssh-config.example` — 不含真实主机名的 SSH 配置
 
-## Pre-commit protection
+## 提交前保护
 
-The `tests/test_no_secrets.py` scan runs on every commit to catch
-accidentally committed secrets. See `docs/security.md` for what to do
-if you accidentally commit a secret.
+`tests/test_no_secrets.py` 扫描会在每次提交时运行，以捕获意外提交的密钥。如果不小心提交了密钥，请参阅 `docs/security.md` 了解处理方式。

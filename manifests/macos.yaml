@@ -1,5 +1,5 @@
 # =============================================================================
-# macOS-specific manifest
+# macOS 专属清单
 # =============================================================================
 
 features:
@@ -36,7 +36,7 @@ features:
       - zotero
       - r
       - julia
-      # - drawio  # cask
+      # - drawio  # cask（Homebrew cask）
 
   optional:
     packages:

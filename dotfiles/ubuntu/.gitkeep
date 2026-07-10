@@ -1,9 +1,9 @@
 # =============================================================================
-# Ubuntu dotfiles placeholder
+# Ubuntu dotfiles 占位文件
 # =============================================================================
-# Phase 1: dotfiles are not deployed.
+# 第一阶段：dotfiles 不会部署。
 #
-# Phase 3 will populate:
+# 第三阶段将填充：
 #   .bashrc.tmpl
 #   .profile.tmpl
 #   .tmux.conf.tmpl

@@ -1,6 +1,6 @@
 # =============================================================================
-# Git configuration template
-# Copy to ~/.gitconfig and fill in your details.
+# Git 配置模板
+# 复制为 ~/.gitconfig 并填入你的个人信息。
 # =============================================================================
 
 [user]
@@ -32,7 +32,7 @@
     last = log -1 HEAD
 
 [credential]
-    # Use SSH keys instead of HTTPS + credential helper where possible
+    # 尽可能使用 SSH 密钥代替 HTTPS + credential helper
     # helper = /usr/local/bin/git-credential-manager
 
 [diff]
@@ -42,10 +42,10 @@
     tool = nvimdiff
     conflictstyle = diff3
 
-# ── Platform-specific overrides ─────────────────────────────────────────
-# On Windows:
+# ── 平台特定覆盖 ───────────────────────────────────────────────────────
+# Windows 上：
 # [core]
 #     autocrlf = true
-# On macOS:
+# macOS 上：
 # [credential]
 #     helper = osxkeychain

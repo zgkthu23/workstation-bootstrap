@@ -1,21 +1,21 @@
 <#
 .SYNOPSIS
-    Workstation bootstrap orchestrator for Windows.
+    工作站初始化编排脚本（Windows）。
 .DESCRIPTION
-    Coordinates create-directories, install-packages, clone-repositories,
-    and verify scripts in order. Supports dry-run and idempotent execution.
+    按顺序协调 create-directories、install-packages、clone-repositories、
+    和 verify 脚本。支持试运行和幂等执行。
 .PARAMETER DryRun
-    Show what would be done without making changes.
+    仅展示将要执行的操作，不做实际修改。
 .PARAMETER WhatIf
-    Alias for DryRun.
+    DryRun 的别名。
 .PARAMETER Force
-    Overwrite existing files and configurations.
+    覆盖已有文件和配置。
 .PARAMETER SkipPackages
-    Skip package installation step.
+    跳过软件包安装步骤。
 .PARAMETER SkipRepos
-    Skip repository clone step.
+    跳过仓库克隆步骤。
 .PARAMETER Inventory
-    Path to inventory YAML file (default: auto-detect from hostname).
+    inventory YAML 文件路径（默认：根据主机名自动检测）。
 .EXAMPLE
     .\bootstrap.ps1 -DryRun
     .\bootstrap.ps1 -SkipPackages
@@ -35,7 +35,7 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Resolve-Path "$scriptDir\..\.."
 
-# Resolve dry-run
+# 解析试运行标志
 $isDryRun = $DryRun -or $WhatIf
 
 function Write-Log {
@@ -51,7 +51,7 @@ function Write-Step {
 }
 
 # ==============================================================================
-# Main
+# 主流程
 # ==============================================================================
 
 Write-Host @"
@@ -61,97 +61,97 @@ Write-Host @"
 "@ -ForegroundColor Green
 
 if ($isDryRun) {
-    Write-Log 'INFO' 'DRY-RUN MODE — no changes will be made'
+    Write-Log 'INFO' '试运行模式 — 不会进行任何修改'
 }
 
-Write-Log 'INFO' "Project root: $projectRoot"
+Write-Log 'INFO' "项目根目录: $projectRoot"
 
-# Pre-flight checks
-Write-Step 'Pre-flight checks'
+# 飞行前检查
+Write-Step '飞行前检查'
 
 $osInfo = Get-CimInstance Win32_OperatingSystem
-Write-Log 'INFO' "OS: $($osInfo.Caption)"
-Write-Log 'INFO' "Hostname: $env:COMPUTERNAME"
+Write-Log 'INFO' "操作系统: $($osInfo.Caption)"
+Write-Log 'INFO' "主机名: $env:COMPUTERNAME"
 
-# Check PowerShell version
+# 检查 PowerShell 版本
 $psVersion = $PSVersionTable.PSVersion
 if ($psVersion.Major -lt 7) {
-    Write-Log 'WARN' "PowerShell $psVersion — recommend PowerShell 7+"
+    Write-Log 'WARN' "PowerShell $psVersion — 建议升级到 PowerShell 7+"
 } else {
     Write-Log 'INFO' "PowerShell $psVersion"
 }
 
-# Check git
+# 检查 Git
 try {
     $gitVersion = & git --version 2>$null
     Write-Log 'INFO' "Git: $gitVersion"
 } catch {
-    Write-Log 'ERROR' 'Git is not installed. Install Git first.'
+    Write-Log 'ERROR' 'Git 未安装。请先安装 Git。'
     exit 1
 }
 
-# Resolve inventory
+# 解析 inventory 文件
 if (-not $Inventory) {
     $hostname = $env:COMPUTERNAME.ToLower()
     $inventoryPath = "$projectRoot\inventory\windows-main.yaml"
     if (-not (Test-Path $inventoryPath)) {
-        Write-Log 'ERROR' "No inventory found at $inventoryPath"
-        Write-Log 'INFO' 'Create one from the template or specify with -Inventory'
+        Write-Log 'ERROR' "未找到 inventory 文件: $inventoryPath"
+        Write-Log 'INFO' '请从模板创建一份，或使用 -Inventory 参数指定路径'
         exit 1
     }
     $Inventory = $inventoryPath
 }
 Write-Log 'INFO' "Inventory: $Inventory"
 
-# Step 1: Create directories
-Write-Step 'Step 1: Create directory structure'
+# 步骤 1：创建目录
+Write-Step '步骤 1: 创建目录结构'
 $createDirsArgs = @{ Inventory = $Inventory }
 if ($isDryRun) { $createDirsArgs['DryRun'] = $true }
 if ($Force) { $createDirsArgs['Force'] = $true }
 & "$scriptDir\create-directories.ps1" @createDirsArgs
 if ($LASTEXITCODE -ne 0) {
-    Write-Log 'ERROR' 'Directory creation failed'
+    Write-Log 'ERROR' '目录创建失败'
     exit $LASTEXITCODE
 }
 
-# Step 2: Install packages
+# 步骤 2：安装软件包
 if (-not $SkipPackages) {
-    Write-Step 'Step 2: Install packages'
+    Write-Step '步骤 2: 安装软件包'
     $installPkgsArgs = @{ Inventory = $Inventory }
     if ($isDryRun) { $installPkgsArgs['DryRun'] = $true }
     & "$scriptDir\install-packages.ps1" @installPkgsArgs
     if ($LASTEXITCODE -ne 0) {
-        Write-Log 'WARN' 'Package installation had errors (check output above)'
+        Write-Log 'WARN' '软件包安装出现错误（请查看上方输出）'
     }
 } else {
-    Write-Log 'INFO' 'Skipping package installation (--skip-packages)'
+    Write-Log 'INFO' '跳过软件包安装（--skip-packages）'
 }
 
-# Step 3: Clone repositories
+# 步骤 3：克隆仓库
 if (-not $SkipRepos) {
-    Write-Step 'Step 3: Clone repositories'
+    Write-Step '步骤 3: 克隆仓库'
     $cloneReposArgs = @{ Inventory = $Inventory }
     if ($isDryRun) { $cloneReposArgs['DryRun'] = $true }
     & "$scriptDir\clone-repositories.ps1" @cloneReposArgs
     if ($LASTEXITCODE -ne 0) {
-        Write-Log 'WARN' 'Repository cloning had errors (check output above)'
+        Write-Log 'WARN' '仓库克隆出现错误（请查看上方输出）'
     }
 } else {
-    Write-Log 'INFO' 'Skipping repository cloning (--skip-repos)'
+    Write-Log 'INFO' '跳过仓库克隆（--skip-repos）'
 }
 
-# Step 4: Verify
-Write-Step 'Step 4: Verify'
+# 步骤 4：验证
+Write-Step '步骤 4: 验证'
 $verifyArgs = @{ Inventory = $Inventory }
 if ($isDryRun) { $verifyArgs['DryRun'] = $true }
 & "$scriptDir\verify.ps1" @verifyArgs
 $verifyExit = $LASTEXITCODE
 
-Write-Step 'Bootstrap complete'
+Write-Step '初始化完成'
 if ($isDryRun) {
-    Write-Log 'INFO' 'Dry-run finished. Review output above, then run without -DryRun to apply.'
+    Write-Log 'INFO' '试运行结束。请查看上方输出，确认无误后去掉 -DryRun 重新运行。'
 } else {
-    Write-Log 'INFO' "Bootstrap finished. Verify exit code: $verifyExit"
+    Write-Log 'INFO' "初始化完成。验证退出码: $verifyExit"
 }
 
 exit $verifyExit

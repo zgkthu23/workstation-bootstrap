@@ -1,9 +1,9 @@
 # =============================================================================
-# Common manifest — packages every machine needs
+# 通用清单 — 每台机器都需要的软件包
 # =============================================================================
 
 common:
-  description: "Core tools required on every development machine"
+  description: "所有开发机器必需的核心工具"
   packages:
     windows:
       - Git.Git
@@ -14,8 +14,8 @@ common:
       - Neovim.Neovim
       - OpenJS.NodeJS.LTS
       - Python.Python.3.12
-      - Cyanfish.NAPS2  # document scanner
-      - Eugeny.Tabby  # terminal
+      - Cyanfish.NAPS2  # 文档扫描仪
+      - Eugeny.Tabby  # 终端
     ubuntu:
       - git
       - curl

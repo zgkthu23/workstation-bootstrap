@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Verify workstation state after bootstrap.
+    初始化后验证工作站状态。
 .DESCRIPTION
-    Checks OS, hostname, inventory, directories, Git, package manager,
-    and project structure. Returns non-zero exit code on issues.
+    检查操作系统、主机名、inventory、目录、Git、包管理器
+    和项目结构。发现问题时返回非零退出码。
 .PARAMETER DryRun
-    Show what would be verified.
+    展示将要验证的内容。
 .PARAMETER Inventory
-    Path to inventory YAML file.
+    inventory YAML 文件路径。
 #>
 
 [CmdletBinding()]
@@ -37,87 +37,87 @@ $errors = 0
 $warnings = 0
 
 Write-Host ""
-Write-Host "=== Workstation Verification ===" -ForegroundColor Cyan
+Write-Host "=== 工作站验证 ===" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Check OS
+# 1. 检查操作系统
 $osInfo = Get-CimInstance Win32_OperatingSystem
-Write-Log 'INFO' "OS: $($osInfo.Caption)"
-Write-Log 'INFO' "Hostname: $env:COMPUTERNAME"
+Write-Log 'INFO' "操作系统: $($osInfo.Caption)"
+Write-Log 'INFO' "主机名: $env:COMPUTERNAME"
 
-# 2. Check inventory exists
+# 2. 检查 inventory 是否存在
 if (-not (Test-Path $Inventory)) {
-    Write-Log 'ERROR' "Inventory not found: $Inventory"
+    Write-Log 'ERROR' "未找到 inventory: $Inventory"
     $errors++
 } else {
-    Write-Log 'PASS' "Inventory found: $Inventory"
+    Write-Log 'PASS' "已找到 inventory: $Inventory"
 }
 
-# 3. Check Git
+# 3. 检查 Git
 try {
     $gitVersion = & git --version 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Log 'PASS' "Git: $gitVersion"
     } else {
-        Write-Log 'ERROR' 'Git is not installed'
+        Write-Log 'ERROR' 'Git 未安装'
         $errors++
     }
 } catch {
-    Write-Log 'ERROR' 'Git is not installed'
+    Write-Log 'ERROR' 'Git 未安装'
     $errors++
 }
 
-# 4. Check winget
+# 4. 检查 winget
 try {
     $wingetVersion = & winget --version 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Log 'PASS' "winget: $wingetVersion"
     } else {
-        Write-Log 'WARN' 'winget not available'
+        Write-Log 'WARN' 'winget 不可用'
         $warnings++
     }
 } catch {
-    Write-Log 'WARN' 'winget not available'
+    Write-Log 'WARN' 'winget 不可用'
     $warnings++
 }
 
-# 5. Check repos.yaml exists
+# 5. 检查 repos.yaml 是否存在
 $reposYaml = "$projectRoot\projects\repos.yaml"
 if (Test-Path $reposYaml) {
-    Write-Log 'PASS' "repos.yaml found"
+    Write-Log 'PASS' "已找到 repos.yaml"
 } else {
-    Write-Log 'ERROR' "repos.yaml not found: $reposYaml"
+    Write-Log 'ERROR' "未找到 repos.yaml: $reposYaml"
     $errors++
 }
 
-# 6. Check for secrets in repo
+# 6. 扫描仓库中的密钥
 $secretsScan = "$projectRoot\tests\test_no_secrets.py"
 if (Test-Path $secretsScan) {
-    Write-Log 'INFO' "Running secret scan..."
+    Write-Log 'INFO' "正在运行密钥扫描..."
     try {
         $result = & uv run python $secretsScan 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Log 'PASS' 'Secret scan: clean'
+            Write-Log 'PASS' '密钥扫描: 无问题'
         } else {
-            Write-Log 'WARN' 'Secret scan found issues (see above)'
+            Write-Log 'WARN' '密钥扫描发现问题（请查看上方输出）'
             $warnings++
         }
     } catch {
-        Write-Log 'WARN' "Could not run secret scan: $_"
+        Write-Log 'WARN' "无法运行密钥扫描: $_"
         $warnings++
     }
 }
 
-# 7. Summary
+# 7. 汇总
 Write-Host ""
-Write-Host "=== Verification Summary ===" -ForegroundColor Cyan
-Write-Host "Errors  : $errors" -ForegroundColor $(if ($errors -gt 0) { 'Red' } else { 'Green' })
-Write-Host "Warnings: $warnings" -ForegroundColor $(if ($warnings -gt 0) { 'Yellow' } else { 'Green' })
+Write-Host "=== 验证汇总 ===" -ForegroundColor Cyan
+Write-Host "错误: $errors" -ForegroundColor $(if ($errors -gt 0) { 'Red' } else { 'Green' })
+Write-Host "警告: $warnings" -ForegroundColor $(if ($warnings -gt 0) { 'Yellow' } else { 'Green' })
 
 if ($errors -gt 0) {
-    Write-Host "VERIFICATION FAILED" -ForegroundColor Red
+    Write-Host "验证未通过" -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "VERIFICATION PASSED" -ForegroundColor Green
+    Write-Host "验证通过" -ForegroundColor Green
     exit 0
 }

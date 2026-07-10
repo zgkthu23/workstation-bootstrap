@@ -1,19 +1,19 @@
 # =============================================================================
-# Inventory: windows-main
-# Windows 11 primary development desktop
+# 主机清单：windows-main
+# Windows 11 主力开发桌面
 # =============================================================================
 
 host: windows-main
 os: windows
 hostname: PUT_YOUR_WINDOWS_HOSTNAME_HERE
 
-# Logical root paths
-workspace_root: D:\workspace
-data_root: D:\data
+# 逻辑根路径
+workspace_root: C:\Users\zgk23\workspace
+data_root: C:\Users\zgk23\data
 cloud_root: C:\Users\PUT_YOUR_USERNAME\OneDrive
-scratch_root: D:\scratch
+scratch_root: C:\Users\zgk23\scratch
 
-# Enabled feature groups
+# 启用的功能组
 features:
   - common
   - c-development
@@ -24,7 +24,7 @@ features:
   - research
   - optional
 
-# Project groups to clone
+# 待克隆的项目组
 project_groups:
   - work
   - personal
@@ -32,11 +32,11 @@ project_groups:
   - tools
   - experiments
 
-# Git identity (template — real values set during bootstrap)
+# Git 身份（模板 — 实际值在 bootstrap 时填入）
 git_user_name: "PUT_YOUR_NAME"
 git_user_email: "PUT_YOUR_EMAIL"
 
-# Optional installations
+# 可选安装项
 install_docker: true
 install_c_dev: true
 install_python_dev: true
