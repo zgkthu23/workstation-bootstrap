@@ -50,3 +50,5 @@ common:
       - python@3.12
       - iterm2
       - visual-studio-code
+      - claude-code     # Claude Code（官方推荐 native cask）
+      - codex           # OpenAI Codex CLI（通过 brew cask 安装）

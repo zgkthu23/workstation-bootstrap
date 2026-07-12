@@ -20,6 +20,7 @@ features:
   - c-development
   - python-development
   - node-development
+  - ai-tools            # Claude Code + Codex CLI
   - docker
   - office
   - research

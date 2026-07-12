@@ -45,6 +45,18 @@ features:
         url: https://pnpm.io/installation
         method: curl
 
+  # AI 编程助手 — 不在 apt 源中，通过官方脚本/npm 安装
+  ai-tools:
+    manual:
+      - name: Claude Code
+        url: https://docs.anthropic.com/en/docs/claude-code/overview
+        method: curl
+        command: curl -fsSL https://claude.ai/install.sh | bash
+      - name: Codex CLI
+        url: https://github.com/openai/codex
+        method: npm
+        command: npm install -g @openai/codex
+
   docker:
     packages:
       - docker.io

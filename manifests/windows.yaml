@@ -30,6 +30,18 @@ features:
       - OpenJS.NodeJS.LTS
       - pnpm.pnpm
 
+  # AI 编程助手 — 通过 npm 安装
+  ai-tools:
+    manual:
+      - name: Claude Code
+        url: https://docs.anthropic.com/en/docs/claude-code/overview
+        method: npm
+        command: npm install -g @anthropic-ai/claude-code
+      - name: Codex CLI
+        url: https://github.com/openai/codex
+        method: npm
+        command: npm install -g @openai/codex
+
   docker:
     packages:
       - Docker.DockerDesktop
