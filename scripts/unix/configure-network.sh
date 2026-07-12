@@ -30,8 +30,8 @@ while [[ $# -gt 0 ]]; do
     --inventory) INVENTORY="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --output-format) OUTPUT_FORMAT="$2"; shift 2 ;;
-    --help) bootstrap_help "$0"; exit 0 ;;
-    *) bootstrap_log ERROR "configure-network" "未知参数: $1"; exit 1 ;;
+    --help) printf '%s\n' "Usage: configure-network.sh [--inventory PATH] [--dry-run] [--output-format text|json] [--help]"; exit 0 ;;
+    *) bootstrap_write_record ERROR "configure-network" "未知参数: $1"; exit 1 ;;
   esac
 done
 
@@ -66,23 +66,23 @@ PROXY_HTTPS="${PROXY_HTTPS:-http://127.0.0.1:10808}"
 NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,*.local}"
 
 # ---- 检查代理可达性 -----------------------------------------------------
-bootstrap_log INFO "configure-network" "代理地址: $PROXY_HTTP"
-bootstrap_log INFO "configure-network" "NO_PROXY: $NO_PROXY"
+bootstrap_write_record INFO "configure-network" "代理地址: $PROXY_HTTP"
+bootstrap_write_record INFO "configure-network" "NO_PROXY: $NO_PROXY"
 
 if $DRY_RUN; then
-  bootstrap_log SUCCESS "configure-network" "[DRY-RUN] 将设置 HTTP_PROXY/HTTPS_PROXY 环境变量"
+  bootstrap_write_record SUCCESS "configure-network" "[DRY-RUN] 将设置 HTTP_PROXY/HTTPS_PROXY 环境变量"
   exit 0
 fi
 
 # 测试代理是否可达（curl 5 秒超时）
 if command -v curl >/dev/null 2>&1; then
   if curl -s --max-time 5 -x "$PROXY_HTTP" "https://www.google.com" -o /dev/null 2>/dev/null; then
-    bootstrap_log SUCCESS "configure-network" "代理可达 — Google 连通"
+    bootstrap_write_record SUCCESS "configure-network" "代理可达 — Google 连通"
   else
-    bootstrap_log WARN "configure-network" "代理不可达 — 请确认 v2rayN 已启动"
+    bootstrap_write_record WARN "configure-network" "代理不可达 — 请确认 v2rayN 已启动"
   fi
 else
-  bootstrap_log WARN "configure-network" "curl 不可用，跳过代理连通性测试"
+  bootstrap_write_record WARN "configure-network" "curl 不可用，跳过代理连通性测试"
 fi
 
 # ---- 写入 shell 配置 -----------------------------------------------------
@@ -96,7 +96,7 @@ fi
 
 # 检查是否已有代理配置
 if [[ -f "$SHELL_RC" ]] && grep -q "HTTP_PROXY" "$SHELL_RC" 2>/dev/null; then
-  bootstrap_log INFO "configure-network" "$SHELL_RC 中已有代理配置，跳过写入"
+  bootstrap_write_record INFO "configure-network" "$SHELL_RC 中已有代理配置，跳过写入"
 else
   {
     echo ""
@@ -108,7 +108,7 @@ else
     echo "export https_proxy=\"$PROXY_HTTPS\""
     echo "export no_proxy=\"$NO_PROXY\""
   } >> "$SHELL_RC"
-  bootstrap_log SUCCESS "configure-network" "代理配置已写入 $SHELL_RC"
+  bootstrap_write_record SUCCESS "configure-network" "代理配置已写入 $SHELL_RC"
 fi
 
 # ---- 当前 shell 生效 -----------------------------------------------------
@@ -119,4 +119,4 @@ export http_proxy="$PROXY_HTTP"
 export https_proxy="$PROXY_HTTPS"
 export no_proxy="$NO_PROXY"
 
-bootstrap_log SUCCESS "configure-network" "网络配置完成 — 当前 shell 已生效"
+bootstrap_write_record SUCCESS "configure-network" "网络配置完成 — 当前 shell 已生效"

@@ -16,8 +16,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-source "$PROJECT_ROOT/scripts/lib/common.bash"
+source "${SCRIPT_DIR}/../lib/common.bash"
 
 # ---- 解析参数 -----------------------------------------------------------
 INVENTORY=""
@@ -29,8 +28,8 @@ while [[ $# -gt 0 ]]; do
     --inventory) INVENTORY="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --output-format) OUTPUT_FORMAT="$2"; shift 2 ;;
-    --help) bootstrap_help "$0"; exit 0 ;;
-    *) bootstrap_log ERROR "install-package-manager" "未知参数: $1"; exit 1 ;;
+    --help) printf '%s\n' "Usage: install-package-manager.sh [--inventory PATH] [--dry-run] [--output-format text|json] [--help]"; exit 0 ;;
+    *) bootstrap_write_record ERROR "install-package-manager" "未知参数: $1"; exit 1 ;;
   esac
 done
 
@@ -41,9 +40,9 @@ OS="$(uname -s)"
 # ---- Ubuntu — apt 自带，直接跳过 --------------------------------
 if [[ "$OS" == "Linux" ]]; then
   if command -v apt-get >/dev/null 2>&1; then
-    bootstrap_log SUCCESS "install-package-manager" "apt 已可用（Ubuntu 自带）"
+    bootstrap_write_record SUCCESS "install-package-manager" "apt 已可用（Ubuntu 自带）"
   else
-    bootstrap_log ERROR "install-package-manager" "apt-get 不可用 — 非 Ubuntu 系统？"
+    bootstrap_write_record ERROR "install-package-manager" "apt-get 不可用 — 非 Ubuntu 系统？"
     exit 1
   fi
   exit 0
@@ -51,21 +50,21 @@ fi
 
 # ---- macOS — 安装 Homebrew ------------------------------------
 if [[ "$OS" != "Darwin" ]]; then
-  bootstrap_log ERROR "install-package-manager" "不支持的操作系统: $OS"
+  bootstrap_write_record ERROR "install-package-manager" "不支持的操作系统: $OS"
   exit 1
 fi
 
 if command -v brew >/dev/null 2>&1; then
-  bootstrap_log SUCCESS "install-package-manager" "Homebrew 已安装: $(brew --version | head -1)"
+  bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 已安装: $(brew --version | head -1)"
   exit 0
 fi
 
 if $DRY_RUN; then
-  bootstrap_log SUCCESS "install-package-manager" "[DRY-RUN] 将安装 Homebrew"
+  bootstrap_write_record SUCCESS "install-package-manager" "[DRY-RUN] 将安装 Homebrew"
   exit 0
 fi
 
-bootstrap_log INFO "install-package-manager" "正在安装 Homebrew..."
+bootstrap_write_record INFO "install-package-manager" "正在安装 Homebrew..."
 
 # 安装 Homebrew（官方安装脚本）
 if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null; then
@@ -77,11 +76,11 @@ if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install
   fi
 
   if command -v brew >/dev/null 2>&1; then
-    bootstrap_log SUCCESS "install-package-manager" "Homebrew 安装成功: $(brew --version | head -1)"
+    bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 安装成功: $(brew --version | head -1)"
   else
-    bootstrap_log WARN "install-package-manager" "Homebrew 已安装但未在 PATH 中 — 请重新打开终端"
+    bootstrap_write_record WARN "install-package-manager" "Homebrew 已安装但未在 PATH 中 — 请重新打开终端"
   fi
 else
-  bootstrap_log ERROR "install-package-manager" "Homebrew 安装失败"
+  bootstrap_write_record ERROR "install-package-manager" "Homebrew 安装失败"
   exit 1
 fi
