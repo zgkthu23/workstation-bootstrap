@@ -15,6 +15,7 @@ scratch_root: /home/PUT_YOUR_USERNAME/scratch
 
 # 启用的功能组
 features:
+  - networking          # GFW 代理（必须最先配置）
   - common
   - c-development
   - python-development
