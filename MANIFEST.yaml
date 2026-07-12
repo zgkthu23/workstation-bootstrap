@@ -145,6 +145,13 @@ bootstrap_steps:
     forwards: inventory,dry-run,output-format
     skip_option: skip-network
     failure_policy: stop
+  - id: install-package-manager
+    order: 7
+    windows: scripts/windows/install-package-manager.ps1
+    unix: scripts/unix/install-package-manager.sh
+    forwards: inventory,dry-run,output-format
+    skip_option: skip-package-manager
+    failure_policy: stop
   - id: create-directories
     order: 10
     windows: scripts/windows/create-directories.ps1
