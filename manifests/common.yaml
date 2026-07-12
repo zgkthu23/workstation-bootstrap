@@ -34,6 +34,7 @@ common:
       - python3-venv
       - nodejs
       - npm
+      - code          # VS Code（通过 Microsoft apt 源安装）
     macos:
       - git
       - curl
