@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY_RUN=true; shift ;;
     --output-format) OUTPUT_FORMAT="$2"; shift 2 ;;
     --help) printf '%s\n' "Usage: configure-network.sh [--inventory PATH] [--dry-run] [--output-format text|json] [--help]"; exit 0 ;;
-    *) bootstrap_write_record ERROR "configure-network" "未知参数: $1"; exit 1 ;;
+    *) echo "ERROR: 未知参数: $1" >&2; exit 1 ;;
   esac
 done
 

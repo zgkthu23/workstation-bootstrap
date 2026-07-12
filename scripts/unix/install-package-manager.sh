@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY_RUN=true; shift ;;
     --output-format) OUTPUT_FORMAT="$2"; shift 2 ;;
     --help) printf '%s\n' "Usage: install-package-manager.sh [--inventory PATH] [--dry-run] [--output-format text|json] [--help]"; exit 0 ;;
-    *) bootstrap_write_record ERROR "install-package-manager" "未知参数: $1"; exit 1 ;;
+    *) echo "ERROR: 未知参数: $1" >&2; exit 1 ;;
   esac
 done
 
@@ -55,7 +55,8 @@ if [[ "$OS" != "Darwin" ]]; then
 fi
 
 if command -v brew >/dev/null 2>&1; then
-  bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 已安装: $(brew --version | head -1)"
+  BREW_VER="$(timeout 5 brew --version 2>/dev/null | head -1 || echo 'unknown')"
+  bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 已安装: $BREW_VER"
   exit 0
 fi
 
@@ -66,21 +67,40 @@ fi
 
 bootstrap_write_record INFO "install-package-manager" "正在安装 Homebrew..."
 
-# 安装 Homebrew（官方安装脚本）
-if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null; then
-  # 将 brew 加入 PATH
-  if [[ -f /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  elif [[ -f /usr/local/bin/brew ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-  fi
-
-  if command -v brew >/dev/null 2>&1; then
-    bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 安装成功: $(brew --version | head -1)"
-  else
-    bootstrap_write_record WARN "install-package-manager" "Homebrew 已安装但未在 PATH 中 — 请重新打开终端"
-  fi
-else
-  bootstrap_write_record ERROR "install-package-manager" "Homebrew 安装失败"
+# 先下载安装脚本，再执行——避免 curl 失败时被静默吞掉
+BREW_SH="/tmp/brew-install.sh"
+if ! curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o "$BREW_SH"; then
+  bootstrap_write_record ERROR "install-package-manager" "Homebrew 安装脚本下载失败"
   exit 1
+fi
+
+if ! /bin/bash "$BREW_SH" </dev/null; then
+  bootstrap_write_record ERROR "install-package-manager" "Homebrew 安装失败"
+  rm -f "$BREW_SH"
+  exit 1
+fi
+rm -f "$BREW_SH"
+
+# 将 brew 加入 PATH（当前进程 + 写入 shell rc 供后续步骤使用）
+BREW_PREFIX=""
+if [[ -f /opt/homebrew/bin/brew ]]; then
+  BREW_PREFIX="/opt/homebrew"
+elif [[ -f /usr/local/bin/brew ]]; then
+  BREW_PREFIX="/usr/local"
+fi
+
+if [[ -n "$BREW_PREFIX" ]]; then
+  eval "$($BREW_PREFIX/bin/brew shellenv)"
+  # 写入 shell rc，确保新终端和后续脚本能看到 brew
+  SHELL_RC="$HOME/.zshrc"
+  if ! grep -q "brew shellenv" "$SHELL_RC" 2>/dev/null; then
+    echo "eval \"\$($BREW_PREFIX/bin/brew shellenv)\"" >> "$SHELL_RC"
+  fi
+fi
+
+if command -v brew >/dev/null 2>&1; then
+  BREW_VER="$(timeout 5 brew --version 2>/dev/null | head -1 || echo 'unknown')"
+  bootstrap_write_record SUCCESS "install-package-manager" "Homebrew 安装成功: $BREW_VER"
+else
+  bootstrap_write_record WARN "install-package-manager" "Homebrew 已安装但未在 PATH 中 — 请重新打开终端"
 fi

@@ -30,11 +30,17 @@ try {
 
     Initialize-BootstrapRuntime "install-package-manager" -OutputFormat $OutputFormat
 
-    # winget is built into Windows 11. Check if available.
+    # On Windows 10, winget may be an app-execution-alias stub that Get-Command resolves
+    # but doesn't actually run. Verify by executing it.
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if ($winget) {
-        Write-BootstrapRecord -Level SUCCESS -Message "winget 已可用（Windows 11 自带）"
-        exit 0
+        try {
+            $null = winget --version 2>&1
+            Write-BootstrapRecord -Level SUCCESS -Message "winget 已可用"
+            exit 0
+        } catch {
+            Write-BootstrapRecord -Level WARN -Message "winget 检测到但无法运行，将尝试安装"
+        }
     }
 
     if ($DryRun) {
@@ -50,12 +56,8 @@ try {
     Invoke-WebRequest -Uri $url -OutFile $out
     Add-AppxPackage -Path $out
 
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-BootstrapRecord -Level SUCCESS -Message "winget 安装成功"
-    } else {
-        Write-BootstrapRecord -Level ERROR -Message "winget 安装失败"
-        exit 1
-    }
+    Write-BootstrapRecord -Level WARN -Message "winget 安装后需重启终端才能使用"
+    exit 0
 } catch {
     Write-BootstrapRecord -Level ERROR -Message "安装失败: $_"
     exit 1
