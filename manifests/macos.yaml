@@ -3,6 +3,16 @@
 # =============================================================================
 
 features:
+  # 网络：GFW 环境下的 VPN 代理，确保外网可达
+  networking:
+    packages:
+      - v2rayn         # VPN 客户端（Clash 内核，GUI）
+    env:
+      HTTP_PROXY: "http://127.0.0.1:10808"
+      HTTPS_PROXY: "http://127.0.0.1:10808"
+      NO_PROXY: "localhost,127.0.0.1,*.ihep.ac.cn,*.local"
+    description: "GFW 代理 — v2rayN 默认监听 10808 端口"
+
   c-development:
     packages:
       - llvm

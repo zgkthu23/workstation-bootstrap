@@ -138,6 +138,13 @@ data_interfaces:
 # Orchestrators read this list, sort by order, select their platform path, and
 # forward only named inputs. Keep values within the documented YAML subset.
 bootstrap_steps:
+  - id: configure-network
+    order: 5
+    windows: scripts/windows/configure-network.ps1
+    unix: scripts/unix/configure-network.sh
+    forwards: inventory,dry-run,output-format
+    skip_option: skip-network
+    failure_policy: stop
   - id: create-directories
     order: 10
     windows: scripts/windows/create-directories.ps1

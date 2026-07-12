@@ -5,16 +5,18 @@
 
 host: macos-main
 os: macos
-hostname: PUT_YOUR_MACOS_HOSTNAME
+hostname: Guangkuos-MacBook-Air.local
 
 # 逻辑根路径
-workspace_root: /Users/PUT_YOUR_USERNAME/workspace
-data_root: /Users/PUT_YOUR_USERNAME/data
-cloud_root: /Users/PUT_YOUR_USERNAME/Library/CloudStorage  # 根据实际云存储目录调整
-scratch_root: /Users/PUT_YOUR_USERNAME/scratch
+workspace_root: /Users/zgk/workspace
+data_root: /Users/zgk/data
+cloud_root: /Users/zgk/Library/CloudStorage
+scratch_root: /Users/zgk/scratch
 
-# 启用的功能组
+# 启用的功能组（按配置顺序排列）
+# networking 排第一：GFW 环境下必须最先配置网络，否则后续步骤无法访问外网
 features:
+  - networking          # VPN 代理 + IHEP API 代理
   - common
   - c-development
   - python-development
@@ -31,6 +33,6 @@ project_groups:
   - tools
   - experiments
 
-# Git 身份（模板 — 实际值在 bootstrap 时填入）
-git_user_name: "PUT_YOUR_NAME"
-git_user_email: "PUT_YOUR_EMAIL"
+# Git 身份
+git_user_name: "zgkthu23"
+git_user_email: "zgkthu23@gmail.com"
