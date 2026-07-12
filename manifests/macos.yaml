@@ -54,3 +54,9 @@ features:
       - gimp
       - inkscape
       - thunderbird
+
+  # zsh 增强
+  shell:
+    packages:
+      - zsh-autosuggestions
+      - zsh-syntax-highlighting

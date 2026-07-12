@@ -16,11 +16,12 @@ scratch_root: /Users/zgk/scratch
 # 启用的功能组（按配置顺序排列）
 # networking 排第一：GFW 环境下必须最先配置网络，否则后续步骤无法访问外网
 features:
-  - networking          # VPN 代理 + IHEP API 代理
+  - networking          # GFW 代理（必须最先配置）
   - common
   - c-development
   - python-development
   - node-development
+  - shell               # zsh 增强
   - office
   - research
   - optional
