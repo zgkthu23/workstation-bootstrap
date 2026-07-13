@@ -1,65 +1,75 @@
 # workstation-bootstrap
 
-以声明式方式定义并重建 Windows、Ubuntu 和 macOS 开发机的目录布局、软件包计划、
-dotfiles 接口和 Git 项目结构。当前仓库既是人类可维护的基础设施配置，也是 Agent
-可发现、可组合、可解析执行的控制平面。
+声明式工作站配置。**没有安装脚本，Agent 直接读取声明文件并执行。**
 
-Agent 从 [`AGENTS.md`](AGENTS.md) 开始；机器契约和完整执行图位于
-[`MANIFEST.yaml`](MANIFEST.yaml)。人类可直接使用根目录的 `run.ps1` 或 `run.sh`，
-原有 `scripts/<platform>/bootstrap.*` 路径继续兼容。
-
-## 快速开始
-
-PowerShell 7+：
-
-```powershell
-.\run.ps1 -ListTasks
-.\run.ps1 -DryRun
-.\run.ps1 -Task create-directories -DryRun
-.\run.ps1 -DryRun -OutputFormat json
-```
-
-Ubuntu / macOS：
+## 安装
 
 ```bash
-bash ./run.sh --list-tasks
-bash ./run.sh --dry-run
-bash ./run.sh --task create-directories --dry-run
-bash ./run.sh --dry-run --output-format json
+git clone git@github.com:zgkthu23/workstation-bootstrap.git ~/workstation-bootstrap
 ```
 
-每个任务仍可直接运行，具体接口通过 `--help` / `-Help` 自描述；任务与平台映射见
-[`scripts/README.md`](scripts/README.md)。
+然后告诉 Claude Code 或 Codex：
 
-## 稳定执行契约
-
-- `MANIFEST.yaml` 的 `bootstrap_steps` 是唯一执行顺序来源。
-- 文本输出固定为 `[LEVEL] ISO-8601 [COMPONENT] MESSAGE`。
-- JSON 输出为 NDJSON；每行包含 `schema_version`、`timestamp`、`level`、
-  `component` 和 `message`。
-- `INFO`、`WARN`、`SUCCESS` 写 stdout，`ERROR` 写 stderr。
-- 退出码 `0` 表示成功，`1` 表示失败，`2` 表示跳过或当前不适用。
-- 完整流程会记录子任务的 `2` 并继续；单任务模式会原样返回 `2`。
-
-## 管理边界与当前功能
-
-当前已实现并保持原有行为：
-
-- 按 inventory 幂等创建 workspace、data、cloud、scratch 与工作区子目录；
-- 校验 inventory、Git、包管理器、仓库清单和潜在密钥；
-- 通过 dry-run 安全预览目录变更；
-- 软件包安装和仓库克隆仍是 Phase 1 占位实现，不会执行实际变更。
-
-本仓库不管理个人文件、云盘内容、大型数据集、应用数据、密钥、操作系统安装或磁盘分区。
-inventory 和模板中的 `PUT_YOUR_*` 值必须在使用前按目标机器调整，但不得写入密钥。
-
-## 验证
-
-```powershell
-uv run --quiet python tests/validate_manifests.py
-uv run --quiet python tests/test_no_secrets.py
+```
+Read ~/workstation-bootstrap/AGENTS.md and configure this machine.
 ```
 
-架构、引导、恢复和安全细节见 [`docs/architecture.md`](docs/architecture.md)、
-[`docs/bootstrap.md`](docs/bootstrap.md)、[`docs/recovery.md`](docs/recovery.md) 和
-[`docs/security.md`](docs/security.md)。
+Agent 会检测操作系统、安装依赖、配置代理、安装软件包、克隆仓库。
+
+## 仓库结构
+
+```
+workstation-bootstrap/
+├── AGENTS.md              ← Agent 入口（Agent 先读这个）
+├── README.md              ← 人类入口
+├── hosts/                 ← 主机定义
+│   ├── macos-main.yaml
+│   ├── ubuntu-main.yaml
+│   └── windows-main.yaml
+├── packages/              ← 软件包声明
+│   ├── common.yaml        ← 所有 OS 通用
+│   ├── macos.yaml
+│   ├── ubuntu.yaml
+│   └── windows.yaml
+├── repositories.yaml      ← Git 仓库声明
+├── templates/             ← 配置模板（示例）
+└── .gitignore
+```
+
+## 主机配置
+
+`hosts/<name>.yaml` 定义了一台机器：
+
+```yaml
+host: macos-main
+os: macos
+hostname: My-MacBook.local
+workspace_root: /Users/zgk/workspace
+features:
+  - networking
+  - common
+  - python-development
+  - node-development
+  - ai-tools
+project_groups:
+  - personal
+  - work
+```
+
+## 功能组
+
+`packages/<os>.yaml` 按功能组声明软件包。Agent 读取 `features` 列表，安装对应包。
+
+## 仓库克隆
+
+`repositories.yaml` 声明要克隆的 Git 仓库。只有 `hosts` 列表包含当前主机名的仓库才会克隆。
+
+## 更新配置
+
+编辑声明文件，提交，推送。在其他机器上拉取后重新告诉 Agent 配置即可。
+
+## 不管理的内容
+
+- 个人文件、云盘内容、大型数据集
+- 密钥、Token、API Key（这些只存在于系统环境变量中）
+- 操作系统安装、磁盘分区
