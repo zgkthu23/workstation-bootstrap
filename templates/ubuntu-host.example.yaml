@@ -1,0 +1,28 @@
+schema_version: 2
+id: PUT_YOUR_UBUNTU_HOST_ID
+description: Ubuntu 主机模板；填写后再移入 hosts/
+
+match:
+  hostnames: [PUT_YOUR_UBUNTU_HOSTNAME_HERE]
+
+platform:
+  os: linux
+  distro: ubuntu
+  arch: x86_64
+  environment: native
+
+profiles: [gfw-network, base, developer, research, server, work, experiments]
+
+paths:
+  cloud_root: ~/cloud
+
+overrides:
+  bundles: {include: [], exclude: []}
+  tools: {include: [], exclude: []}
+  projects:
+    include: []
+    exclude: [experiments-misc]
+  settings:
+    git:
+      user_name: PUT_YOUR_NAME
+      user_email: PUT_YOUR_EMAIL

@@ -1,0 +1,10 @@
+schema_version: 2
+id: gfw-network
+description: Local proxy client and shared proxy environment
+bundles: [network-client]
+project_groups: []
+settings:
+  proxy:
+    http_proxy: http://127.0.0.1:10808
+    https_proxy: http://127.0.0.1:10808
+    no_proxy: localhost,127.0.0.1,*.local

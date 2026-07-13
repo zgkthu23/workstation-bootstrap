@@ -1,0 +1,6 @@
+schema_version: 2
+id: desktop
+description: Desktop productivity workstation
+bundles: [office, desktop-extras]
+project_groups: []
+settings: {}

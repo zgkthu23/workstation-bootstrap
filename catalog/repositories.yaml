@@ -1,0 +1,59 @@
+schema_version: 2
+id: repositories
+
+repositories:
+  - id: workstation-bootstrap
+    url: git@github.com:zgkthu23/workstation-bootstrap.git
+    group: personal
+    directory: workstation-bootstrap
+    optional: false
+    description: 个人工作站基础设施即代码
+
+  - id: claude-config
+    url: git@github.com:zgkthu23/claude-config.git
+    group: personal
+    directory: claude-config
+    optional: false
+    description: Claude Code 配置
+
+  - id: dotfiles
+    url: PUT_YOUR_DOTFILES_REPO_URL
+    group: personal
+    directory: dotfiles
+    optional: true
+    description: 个人 dotfiles（chezmoi 源）
+
+  - id: mygit
+    url: git@github.com:zgkthu23/mygit.git
+    group: tools
+    directory: mygit
+    optional: true
+    description: Python 实现的 git 内部原理
+
+  - id: zip-cracker
+    url: git@github.com:zgkthu23/ZipCracker.git
+    group: tools
+    directory: ZipCracker
+    optional: true
+    description: CTF 用 Zip 密码破解工具
+
+  - id: work-project-alpha
+    url: PUT_YOUR_WORK_REPO_URL
+    group: work
+    directory: project-alpha
+    optional: true
+    description: 主要工作项目
+
+  - id: research-lwfa
+    url: PUT_YOUR_LWFA_REPO_URL
+    group: research
+    directory: lwfa
+    optional: true
+    description: LWFA 研究项目
+
+  - id: experiments-misc
+    url: PUT_YOUR_EXPERIMENTS_REPO_URL
+    group: experiments
+    directory: misc
+    optional: true
+    description: 杂项实验

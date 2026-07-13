@@ -1,0 +1,6 @@
+schema_version: 2
+id: research
+description: Scientific writing and reference management
+bundles: [research-cli, research-desktop]
+project_groups: [research]
+settings: {}

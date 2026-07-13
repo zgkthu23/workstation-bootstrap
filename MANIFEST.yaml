@@ -1,0 +1,75 @@
+schema_version: 2
+id: workstation-bootstrap
+description: Declarative, agent-executed workstation configuration
+
+locations:
+  hosts: hosts/*.yaml
+  profiles: profiles/*.yaml
+  tools: catalog/tools.yaml
+  bundles: catalog/bundles.yaml
+  repositories: catalog/repositories.yaml
+  templates: templates/
+
+read_order:
+  - MANIFEST.yaml
+  - selected-host
+  - selected-profiles
+  - catalog/bundles.yaml
+  - catalog/tools.yaml
+  - catalog/repositories.yaml
+
+defaults:
+  paths:
+    workspace_root: ~/workspace
+    data_root: ~/data
+    scratch_root: ~/scratch
+    repository_root: ~/workspace/repos
+
+platform:
+  required_fields: [os, arch]
+  optional_fields: [distro, environment]
+  values:
+    os: [linux, macos, windows]
+    distro: extensible-lowercase-kebab-case
+    arch: [arm64, x86_64]
+    environment: [native, wsl]
+
+merge_rules:
+  host_selection:
+    rule: exactly-one-hostname-match
+    on_zero_matches: stop-and-ask
+    on_multiple_matches: stop-and-ask
+  profiles:
+    order: host-list-order
+    collections: stable-union
+    settings: conflict-is-error-unless-host-overrides
+  overrides:
+    order:
+      - profile-union
+      - host-includes
+      - host-excludes
+    exclusions_win: true
+    required_tool_wins_over_optional: true
+  tool_targets:
+    match: most-specific-compatible-when
+    specificity: number-of-fields-in-when
+    equal_specificity: error
+    missing_required_target: error-before-mutation
+    missing_optional_target: report-and-skip
+    explicit_unsupported: report-and-skip
+  dependencies:
+    deduplicate: true
+    order: topological
+    cycle: error
+  repositories:
+    select_by: resolved-project-groups
+    project_exclusions_win: true
+    placeholder_url: report-and-skip
+    duplicate_target_directory: error
+    target: "{repository_root}/{group}/{directory}"
+
+execution:
+  declaration_only: true
+  require_complete_plan_before_mutation: true
+  idempotent: true
+  secrets_in_repository: forbidden

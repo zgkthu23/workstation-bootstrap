@@ -1,0 +1,31 @@
+schema_version: 2
+id: PUT_YOUR_WINDOWS_HOST_ID
+description: Windows 主机模板；填写后再移入 hosts/
+
+match:
+  hostnames: [PUT_YOUR_WINDOWS_HOSTNAME_HERE]
+
+platform:
+  os: windows
+  arch: x86_64
+  environment: native
+
+profiles: [gfw-network, base, developer, desktop, research, server, work, experiments]
+
+paths:
+  workspace_root: C:\\Users\\PUT_YOUR_USERNAME\\workspace
+  data_root: C:\\Users\\PUT_YOUR_USERNAME\\data
+  cloud_root: C:\\Users\\PUT_YOUR_USERNAME\\OneDrive
+  scratch_root: C:\\Users\\PUT_YOUR_USERNAME\\scratch
+  repository_root: C:\\Users\\PUT_YOUR_USERNAME\\workspace\\repos
+
+overrides:
+  bundles: {include: [], exclude: []}
+  tools: {include: [], exclude: []}
+  projects: {include: [], exclude: []}
+  settings:
+    proxy:
+      no_proxy: localhost,127.0.0.1
+    git:
+      user_name: PUT_YOUR_NAME
+      user_email: PUT_YOUR_EMAIL

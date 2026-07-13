@@ -1,0 +1,38 @@
+schema_version: 2
+id: yongrun-macbook-air
+description: macOS 开发笔记本
+
+match:
+  hostnames: [Guangkuos-MacBook-Air.local]
+
+platform:
+  os: macos
+  arch: arm64
+  environment: native
+
+profiles:
+  - gfw-network
+  - base
+  - developer
+  - desktop
+  - research
+  - work
+  - experiments
+
+paths:
+  cloud_root: ~/Library/CloudStorage
+
+overrides:
+  bundles:
+    include: [shell]
+    exclude: []
+  tools:
+    include: []
+    exclude: []
+  projects:
+    include: []
+    exclude: [mygit, zip-cracker, work-project-alpha, research-lwfa, experiments-misc]
+  settings:
+    git:
+      user_name: zgkthu23
+      user_email: zgkthu23@gmail.com

@@ -1,0 +1,11 @@
+schema_version: 2
+id: developer
+description: General software development workstation
+bundles:
+  - desktop-development
+  - c-development
+  - python-development
+  - node-development
+  - ai-tools
+project_groups: [tools]
+settings: {}

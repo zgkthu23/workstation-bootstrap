@@ -1,0 +1,6 @@
+schema_version: 2
+id: base
+description: Every managed workstation
+bundles: [base-cli]
+project_groups: [personal]
+settings: {}

@@ -1,0 +1,6 @@
+schema_version: 2
+id: server
+description: Container-capable server or heavy development host
+bundles: [containers]
+project_groups: []
+settings: {}

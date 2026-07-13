@@ -1,0 +1,561 @@
+schema_version: 2
+id: logical-tools
+
+# A target contains exactly one of `install` or `unsupported`. Agents choose the
+# compatible target with the greatest number of fields in `when`.
+tools:
+  - id: git
+    description: Distributed version control
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: git}
+        verify: {command: git, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: git}
+        verify: {command: git, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Git.Git}
+        verify: {command: git, version_argument: --version}
+
+  - id: curl
+    description: HTTP transfer CLI
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: curl}
+        verify: {command: curl, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: curl}
+        verify: {command: curl, version_argument: --version}
+
+  - id: wget
+    description: Non-interactive downloader
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: wget}
+        verify: {command: wget, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: wget}
+        verify: {command: wget, version_argument: --version}
+
+  - id: neovim
+    description: Terminal text editor
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: neovim}
+        verify: {command: nvim, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: neovim}
+        verify: {command: nvim, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Neovim.Neovim}
+        verify: {command: nvim, version_argument: --version}
+
+  - id: tmux
+    description: Terminal multiplexer
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: tmux}
+        verify: {command: tmux, version_argument: -V}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: tmux}
+        verify: {command: tmux, version_argument: -V}
+
+  - id: htop
+    description: Interactive process viewer
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: htop}
+        verify: {command: htop, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: htop}
+        verify: {command: htop, version_argument: --version}
+
+  - id: ripgrep
+    description: Fast recursive text search
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: ripgrep}
+        verify: {command: rg, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: ripgrep}
+        verify: {command: rg, version_argument: --version}
+
+  - id: fd
+    description: Friendly file finder
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: fd}
+        verify: {command: fd, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: fd-find}
+        verify: {command: fdfind, version_argument: --version}
+
+  - id: jq
+    description: JSON processor
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: jq}
+        verify: {command: jq, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: jq}
+        verify: {command: jq, version_argument: --version}
+
+  - id: archive-tools
+    description: Platform archive utility from the legacy base set
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: unzip}
+        verify: {command: unzip, version_argument: -v}
+      - when: {os: windows}
+        install: {provider: winget, package: 7zip.7zip}
+        verify: {command: 7z, version_argument: i}
+
+  - id: visual-studio-code
+    description: Graphical source editor
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: visual-studio-code}
+        verify: {command: code, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: apt
+          package: code
+          repository: https://packages.microsoft.com/repos/code
+        verify: {command: code, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Microsoft.VisualStudioCode}
+        verify: {command: code, version_argument: --version}
+
+  - id: windows-terminal
+    description: Windows terminal application
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Microsoft.WindowsTerminal}
+
+  - id: powershell
+    description: Cross-platform PowerShell shell
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Microsoft.PowerShell}
+        verify: {command: pwsh, version_argument: --version}
+
+  - id: iterm2
+    description: macOS terminal application
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: iterm2}
+
+  - id: tabby
+    description: Cross-platform terminal application
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Eugeny.Tabby}
+
+  - id: naps2
+    description: Document scanning application
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Cyanfish.NAPS2}
+
+  - id: c-toolchain
+    description: Primary C and C++ compiler toolchain
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: llvm}
+        verify: {command: clang, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: build-essential}
+        verify: {command: cc, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Microsoft.VisualStudio.2022.Community}
+
+  - id: llvm
+    description: LLVM compiler suite in addition to the primary toolchain
+    targets:
+      - when: {os: macos}
+        unsupported: included in the c-toolchain mapping
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: clang}
+        verify: {command: clang, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: LLVM.LLVM}
+        verify: {command: clang, version_argument: --version}
+
+  - id: cmake
+    description: Cross-platform build generator
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: cmake}
+        verify: {command: cmake, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: cmake}
+        verify: {command: cmake, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: CMake.CMake}
+        verify: {command: cmake, version_argument: --version}
+
+  - id: ninja
+    description: Ninja build system
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: ninja}
+        verify: {command: ninja, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: ninja-build}
+        verify: {command: ninja, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Ninja-build.Ninja}
+        verify: {command: ninja, version_argument: --version}
+
+  - id: gdb
+    description: GNU debugger
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: gdb}
+        verify: {command: gdb, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: gdb}
+        verify: {command: gdb, version_argument: --version}
+      - when: {os: windows}
+        unsupported: not present in the migrated Windows package intent
+
+  - id: lldb
+    description: LLVM debugger
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: lldb}
+        verify: {command: lldb, version_argument: --version}
+
+  - id: valgrind
+    description: Dynamic analysis tools
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: valgrind}
+        verify: {command: valgrind, version_argument: --version}
+
+  - id: python
+    description: Python runtime
+    channel: "3.12"
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: python@3.12}
+        verify: {command: python3.12, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: python3.12}
+        verify: {command: python3.12, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Python.Python.3.12}
+        verify: {command: python, version_argument: --version}
+
+  - id: python-dev
+    description: Python development headers
+    channel: "3.12"
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: python3-dev}
+
+  - id: python-pip
+    description: Legacy Python package installer
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: python3-pip}
+        verify: {command: pip3, version_argument: --version}
+
+  - id: python-venv
+    description: Python standard virtual environment module
+    targets:
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: python3-venv}
+
+  - id: uv
+    description: Python package and project manager
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: uv}
+        verify: {command: uv, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: official-installer
+          source: https://astral.sh/uv/install.sh
+          documentation: https://docs.astral.sh/uv/getting-started/installation/
+        verify: {command: uv, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: astral-sh.uv}
+        verify: {command: uv, version_argument: --version}
+
+  - id: node
+    description: Node.js runtime
+    channel: lts
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: node}
+        verify: {command: node, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: nodejs}
+        verify: {command: node, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: OpenJS.NodeJS.LTS}
+        verify: {command: node, version_argument: --version}
+
+  - id: npm
+    description: Node.js package manager
+    targets:
+      - when: {os: macos}
+        unsupported: bundled with the node formula
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: npm}
+        dependencies: [node]
+        verify: {command: npm, version_argument: --version}
+      - when: {os: windows}
+        unsupported: bundled with the Node.js LTS package
+
+  - id: pnpm
+    description: Efficient Node.js package manager
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: pnpm}
+        dependencies: [node]
+        verify: {command: pnpm, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: npm-global, package: pnpm}
+        dependencies: [node]
+        verify: {command: pnpm, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: pnpm.pnpm}
+        dependencies: [node]
+        verify: {command: pnpm, version_argument: --version}
+
+  - id: claude-code
+    description: Anthropic terminal coding agent
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: claude-code}
+        verify: {command: claude, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: official-installer
+          source: https://claude.ai/install.sh
+          documentation: https://docs.anthropic.com/en/docs/claude-code/getting-started
+        verify: {command: claude, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: npm-global, package: "@anthropic-ai/claude-code"}
+        dependencies: [node]
+        verify: {command: claude, version_argument: --version}
+
+  - id: codex
+    description: OpenAI Codex CLI
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: codex}
+        verify: {command: codex, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: npm-global, package: "@openai/codex"}
+        dependencies: [node]
+        verify: {command: codex, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: npm-global, package: "@openai/codex"}
+        dependencies: [node]
+        verify: {command: codex, version_argument: --version}
+
+  - id: docker
+    description: Container runtime
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: docker-desktop}
+        verify: {command: docker, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: docker.io}
+        verify: {command: docker, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: Docker.DockerDesktop}
+        verify: {command: docker, version_argument: --version}
+
+  - id: docker-compose
+    description: Multi-container application runner
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: docker-compose}
+        dependencies: [docker]
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: docker-compose-v2}
+        dependencies: [docker]
+      - when: {os: windows}
+        unsupported: bundled with Docker Desktop
+
+  - id: libreoffice
+    description: Open-source office suite
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: libreoffice}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: libreoffice}
+      - when: {os: windows}
+        install: {provider: winget, package: TheDocumentFoundation.LibreOffice}
+
+  - id: microsoft-office
+    description: Microsoft Office desktop suite
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Microsoft.Office}
+
+  - id: adobe-reader
+    description: Adobe Acrobat Reader
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Adobe.Acrobat.Reader.64-bit}
+
+  - id: latex
+    description: Full LaTeX distribution
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: mactex}
+        verify: {command: latex, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: texlive-full}
+        verify: {command: latex, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: MiKTeX.MiKTeX}
+        verify: {command: latex, version_argument: --version}
+
+  - id: pandoc
+    description: Universal document converter
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: pandoc}
+        verify: {command: pandoc, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: pandoc}
+        verify: {command: pandoc, version_argument: --version}
+      - when: {os: windows}
+        unsupported: not present in the migrated Windows package intent
+
+  - id: zotero
+    description: Reference manager
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: zotero}
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: manual
+          source: https://www.zotero.org/download/client/dl?channel=release&platform=linux-x86_64
+          documentation: https://www.zotero.org/support/installation
+      - when: {os: windows}
+        install: {provider: winget, package: Zotero.Zotero}
+
+  - id: r
+    description: R statistical computing environment
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: r}
+        verify: {command: R, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: r-base}
+        verify: {command: R, version_argument: --version}
+
+  - id: julia
+    description: Julia programming language
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: julia}
+        verify: {command: julia, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: julia}
+        verify: {command: julia, version_argument: --version}
+
+  - id: drawio
+    description: diagrams.net desktop application
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: JGraph.Draw}
+
+  - id: zsh-autosuggestions
+    description: Fish-like autosuggestions for zsh
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: zsh-autosuggestions}
+
+  - id: zsh-syntax-highlighting
+    description: Command syntax highlighting for zsh
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: zsh-syntax-highlighting}
+
+  - id: v2rayn
+    description: Cross-platform proxy client
+    targets:
+      - when: {os: macos}
+        install:
+          provider: manual
+          source: https://github.com/2dust/v2rayN/releases/latest
+          documentation: https://github.com/2dust/v2rayN/wiki/Release-files-introduction
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: manual
+          source: https://github.com/2dust/v2rayN/releases/latest
+          documentation: https://github.com/2dust/v2rayN/wiki/Release-files-introduction
+      - when: {os: windows}
+        install: {provider: winget, package: 2dust.v2rayN}
+
+  - id: vlc
+    description: Media player
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: vlc}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: vlc}
+      - when: {os: windows}
+        install: {provider: winget, package: VideoLAN.VLC}
+
+  - id: gimp
+    description: Raster image editor
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: gimp}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: gimp}
+
+  - id: inkscape
+    description: Vector graphics editor
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: inkscape}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: inkscape}
+
+  - id: thunderbird
+    description: Email client
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: thunderbird}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: thunderbird}
+
+  - id: spotify
+    description: Music streaming client
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Spotify.Spotify}
+
+  - id: notion
+    description: Notes and collaboration client
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Notion.Notion}
+
+  - id: discord
+    description: Chat client
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Discord.Discord}
+
+  - id: steam
+    description: Game distribution client
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: Valve.Steam}
+
+  - id: slack
+    description: Team chat client
+    targets:
+      - when: {os: windows}
+        install: {provider: winget, package: SlackTechnologies.Slack}
