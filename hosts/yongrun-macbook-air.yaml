@@ -43,5 +43,5 @@ overrides:
         required: true
         expose_as: GH_TOKEN
         exposure: process-only
-        consumers: [github-cli]
+        consumers: [github-cli, git]
         validation: gh-auth-status
