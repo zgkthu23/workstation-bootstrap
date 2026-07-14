@@ -30,6 +30,41 @@ repositories:
     optional: false
     description: CC Switch source code for study
 
+  - id: python-learning
+    url: https://github.com/zgkthu23/python.git
+    group: learning
+    directory: python
+    optional: false
+    description: Python learning notes, exercises, and projects
+
+  - id: typescript-learning
+    url: https://github.com/zgkthu23/typescript.git
+    group: learning
+    directory: typescript
+    optional: false
+    description: TypeScript learning notes, exercises, and projects
+
+  - id: rust-learning
+    url: https://github.com/zgkthu23/rust.git
+    group: learning
+    directory: rust
+    optional: false
+    description: Rust learning notes, exercises, and projects
+
+  - id: react-learning
+    url: https://github.com/zgkthu23/react.git
+    group: learning
+    directory: react
+    optional: false
+    description: React learning notes, exercises, and applications
+
+  - id: sql-learning
+    url: https://github.com/zgkthu23/sql.git
+    group: learning
+    directory: sql
+    optional: false
+    description: SQL learning notes, queries, exercises, and projects
+
   - id: mygit
     url: git@github.com:zgkthu23/mygit.git
     group: tools
@@ -44,12 +79,12 @@ repositories:
     optional: true
     description: CTF 用 Zip 密码破解工具
 
-  - id: work-project-alpha
-    url: PUT_YOUR_WORK_REPO_URL
+  - id: get-promax-gui
+    url: https://github.com/CreateEnergyTech/get_promax-gui.git
     group: work
-    directory: project-alpha
-    optional: true
-    description: 主要工作项目
+    directory: get_promax-gui
+    optional: false
+    description: BestSeller 供应商门户订单下载、PDF 后处理与翻译的 GUI/CLI 自动化工具
 
   - id: research-lwfa
     url: PUT_YOUR_LWFA_REPO_URL

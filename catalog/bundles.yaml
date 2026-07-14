@@ -4,7 +4,7 @@ id: tool-bundles
 bundles:
   - id: base-cli
     description: Portable command-line essentials
-    required_tools: [git, github-cli, neovim]
+    required_tools: [git, github-cli, neovim, bat, chezmoi]
     optional_tools: [curl, wget, tmux, htop, ripgrep, fd, jq, archive-tools]
 
   - id: desktop-development
@@ -38,8 +38,8 @@ bundles:
     optional_tools: [docker-compose]
 
   - id: office
-    description: Office and PDF applications
-    required_tools: [libreoffice]
+    description: Office, PDF, and knowledge-management applications
+    required_tools: [libreoffice, obsidian]
     optional_tools: [microsoft-office, adobe-reader]
 
   - id: research-cli

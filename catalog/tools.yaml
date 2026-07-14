@@ -67,6 +67,30 @@ tools:
         install: {provider: winget, package: Neovim.Neovim}
         verify: {command: nvim, version_argument: --version}
 
+  - id: bat
+    description: Cat-compatible file viewer with syntax highlighting and Git integration
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: bat}
+        verify: {command: bat, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: bat}
+      - when: {os: windows}
+        unsupported: installation requested only for macOS and Linux
+
+  - id: chezmoi
+    description: Cross-platform dotfile manager
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: chezmoi}
+        verify: {command: chezmoi, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install: {provider: apt, package: chezmoi}
+        verify: {command: chezmoi, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: twpayne.chezmoi}
+        verify: {command: chezmoi, version_argument: --version}
+
   - id: tmux
     description: Terminal multiplexer
     targets:
@@ -446,6 +470,22 @@ tools:
         install: {provider: apt, package: libreoffice}
       - when: {os: windows}
         install: {provider: winget, package: TheDocumentFoundation.LibreOffice}
+
+  - id: obsidian
+    description: Local-first Markdown knowledge base and note-taking application
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-cask, package: obsidian}
+        verify:
+          application: Obsidian.app
+          bundle_identifier: md.obsidian
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: manual
+          source: https://obsidian.md/download
+          documentation: https://obsidian.md/help/install
+      - when: {os: windows}
+        install: {provider: winget, package: Obsidian.Obsidian}
 
   - id: microsoft-office
     description: Microsoft Office desktop suite

@@ -28,10 +28,10 @@ overrides:
     exclude: []
   tools:
     include: []
-    exclude: []
+    exclude: [latex, zotero, iterm2, vlc, gimp, inkscape, thunderbird]
   projects:
     include: []
-    exclude: [mygit, zip-cracker, work-project-alpha, research-lwfa]
+    exclude: [mygit, zip-cracker, research-lwfa]
   settings:
     git:
       user_name: zgkthu23
