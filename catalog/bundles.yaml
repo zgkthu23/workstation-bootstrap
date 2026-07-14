@@ -4,7 +4,7 @@ id: tool-bundles
 bundles:
   - id: base-cli
     description: Portable command-line essentials
-    required_tools: [git, neovim]
+    required_tools: [git, github-cli, neovim]
     optional_tools: [curl, wget, tmux, htop, ripgrep, fd, jq, archive-tools]
 
   - id: desktop-development
@@ -28,8 +28,8 @@ bundles:
     optional_tools: [npm]
 
   - id: ai-tools
-    description: Terminal coding agents
-    required_tools: [claude-code, codex]
+    description: Coding agents and provider management
+    required_tools: [claude-code, codex, cc-switch]
     optional_tools: []
 
   - id: containers

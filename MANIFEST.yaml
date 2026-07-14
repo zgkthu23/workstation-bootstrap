@@ -37,6 +37,10 @@ platform:
 merge_rules:
   host_selection:
     rule: exactly-one-hostname-match
+    canonical_hostname:
+      macos: scutil-local-host-name-dot-local
+      linux: hostname
+      windows: computername-environment
     on_zero_matches: stop-and-ask
     on_multiple_matches: stop-and-ask
   profiles:
@@ -73,3 +77,18 @@ execution:
   require_complete_plan_before_mutation: true
   idempotent: true
   secrets_in_repository: forbidden
+  tool_detection:
+    existing_satisfies: verify-success-or-platform-presence
+    declared_integrity_checks: required
+    provider_role: install-missing-only
+    reinstall_on_provider_mismatch: false
+    version_output: informational
+    channel_role: fresh-install-preference
+    reconcile_existing_channel: false
+  secret_handling:
+    allowed_backends: [macos-keychain]
+    repository_values: forbidden
+    retrieval_output: forbidden
+    exposure: process-only
+    global_environment_export: forbidden
+    duplicate_credential_store: forbidden

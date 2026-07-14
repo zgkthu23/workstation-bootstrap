@@ -36,3 +36,12 @@ overrides:
     git:
       user_name: zgkthu23
       user_email: zgkthu23@gmail.com
+    secrets:
+      github-cli-token:
+        backend: macos-keychain
+        service: github-cli-gh-token
+        required: true
+        expose_as: GH_TOKEN
+        exposure: process-only
+        consumers: [github-cli]
+        validation: gh-auth-status

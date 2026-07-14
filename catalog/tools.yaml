@@ -17,6 +17,23 @@ tools:
         install: {provider: winget, package: Git.Git}
         verify: {command: git, version_argument: --version}
 
+  - id: github-cli
+    description: Official GitHub command-line client
+    targets:
+      - when: {os: macos}
+        install: {provider: brew-formula, package: gh}
+        verify: {command: gh, version_argument: --version}
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: apt
+          package: gh
+          repository: https://cli.github.com/packages
+          documentation: https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+        verify: {command: gh, version_argument: --version}
+      - when: {os: windows}
+        install: {provider: winget, package: GitHub.cli}
+        verify: {command: gh, version_argument: --version}
+
   - id: curl
     description: HTTP transfer CLI
     targets:
@@ -329,33 +346,71 @@ tools:
     description: Anthropic terminal coding agent
     targets:
       - when: {os: macos}
-        install: {provider: brew-cask, package: claude-code}
+        install:
+          provider: official-installer
+          source: https://claude.ai/install.sh
+          documentation: https://code.claude.com/docs/en/setup
         verify: {command: claude, version_argument: --version}
       - when: {os: linux, distro: ubuntu}
         install:
           provider: official-installer
           source: https://claude.ai/install.sh
-          documentation: https://docs.anthropic.com/en/docs/claude-code/getting-started
+          documentation: https://code.claude.com/docs/en/setup
         verify: {command: claude, version_argument: --version}
       - when: {os: windows}
-        install: {provider: npm-global, package: "@anthropic-ai/claude-code"}
-        dependencies: [node]
+        install:
+          provider: official-installer
+          source: https://claude.ai/install.ps1
+          documentation: https://code.claude.com/docs/en/setup
         verify: {command: claude, version_argument: --version}
 
   - id: codex
     description: OpenAI Codex CLI
     targets:
       - when: {os: macos}
-        install: {provider: brew-cask, package: codex}
+        install:
+          provider: official-installer
+          source: https://chatgpt.com/codex/install.sh
+          documentation: https://learn.chatgpt.com/docs/codex/cli
         verify: {command: codex, version_argument: --version}
       - when: {os: linux, distro: ubuntu}
-        install: {provider: npm-global, package: "@openai/codex"}
-        dependencies: [node]
+        install:
+          provider: official-installer
+          source: https://chatgpt.com/codex/install.sh
+          documentation: https://learn.chatgpt.com/docs/codex/cli
         verify: {command: codex, version_argument: --version}
       - when: {os: windows}
-        install: {provider: npm-global, package: "@openai/codex"}
-        dependencies: [node]
+        install:
+          provider: official-installer
+          source: https://chatgpt.com/codex/install.ps1
+          documentation: https://learn.chatgpt.com/docs/codex/cli
         verify: {command: codex, version_argument: --version}
+
+  - id: cc-switch
+    description: Cross-platform provider manager for coding agents
+    targets:
+      - when: {os: macos}
+        install:
+          provider: brew-cask
+          package: cc-switch
+          tap: farion1231/ccswitch
+          documentation: https://github.com/farion1231/cc-switch/blob/main/docs/user-manual/en/1-getting-started/1.2-installation.md
+        verify:
+          application: CC Switch.app
+          bundle_identifier: com.ccswitch.desktop
+          codesign: required
+      - when: {os: linux, distro: ubuntu}
+        install:
+          provider: manual
+          source: https://github.com/farion1231/cc-switch/releases/latest
+          documentation: https://github.com/farion1231/cc-switch/blob/main/docs/user-manual/en/1-getting-started/1.2-installation.md
+      - when: {os: windows, arch: x86_64}
+        install:
+          provider: manual
+          source: https://github.com/farion1231/cc-switch/releases/latest
+          documentation: https://github.com/farion1231/cc-switch/blob/main/docs/user-manual/en/1-getting-started/1.2-installation.md
+      - when: {os: windows, arch: arm64}
+        unsupported: upstream publishes Windows x64 builds only
 
   - id: docker
     description: Container runtime
