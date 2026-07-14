@@ -23,6 +23,13 @@ repositories:
     optional: true
     description: 个人 dotfiles（chezmoi 源）
 
+  - id: cc-switch-source
+    url: https://github.com/farion1231/cc-switch.git
+    group: learning
+    directory: cc-switch
+    optional: false
+    description: CC Switch source code for study
+
   - id: mygit
     url: git@github.com:zgkthu23/mygit.git
     group: tools
