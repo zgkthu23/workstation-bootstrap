@@ -18,7 +18,6 @@ profiles:
   - desktop
   - research
   - work
-  - experiments
 
 paths:
   cloud_root: ~/Library/CloudStorage
@@ -32,7 +31,7 @@ overrides:
     exclude: []
   projects:
     include: []
-    exclude: [mygit, zip-cracker, work-project-alpha, research-lwfa, experiments-misc]
+    exclude: [mygit, zip-cracker, work-project-alpha, research-lwfa]
   settings:
     git:
       user_name: zgkthu23

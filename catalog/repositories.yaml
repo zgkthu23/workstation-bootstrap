@@ -57,10 +57,3 @@ repositories:
     directory: lwfa
     optional: true
     description: LWFA 研究项目
-
-  - id: experiments-misc
-    url: PUT_YOUR_EXPERIMENTS_REPO_URL
-    group: experiments
-    directory: misc
-    optional: true
-    description: 杂项实验

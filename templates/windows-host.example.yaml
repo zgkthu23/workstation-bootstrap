@@ -10,7 +10,7 @@ platform:
   arch: x86_64
   environment: native
 
-profiles: [gfw-network, base, developer, desktop, research, server, work, experiments]
+profiles: [gfw-network, base, developer, desktop, research, server, work]
 
 paths:
   workspace_root: C:\\Users\\PUT_YOUR_USERNAME\\workspace

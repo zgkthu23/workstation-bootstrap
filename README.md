@@ -26,7 +26,9 @@ hosts/<machine-id>.yaml       可自动选择的真实机器及本机例外
 profiles/<profile-id>.yaml    可组合角色
 catalog/tools.yaml            逻辑工具及平台 provider
 catalog/bundles.yaml          required/optional 工具组
+catalog/repository-groups.yaml 顶层仓库分组及 README 内容
 catalog/repositories.yaml     按 project group 选择的仓库
+repository-groups/<group>/     各顶层仓库分组的 README source
 templates/                    未完成主机和配置示例（不参与解析）
 AGENTS.md                     Agent 执行协议
 README.md                     人类入口
@@ -46,6 +48,8 @@ Host 选择 profiles；profiles 选择 bundles 和 project groups；bundles 引�
 - provider 只用于安装缺失工具；版本输出仅报告，channel 只指导缺失工具的新安装，不触发现有工具升级、降级或重装。
 - required 无映射、未知引用、依赖环和仓库目标冲突都在修改机器前停止。
 - optional 无映射、显式 `unsupported` 和 `PUT_YOUR_*` URL 会显示并跳过。
+
+仓库根目录使用五个稳定 group：`personal`、`learning`、`tools`、`work`、`research`。每个 group 的 README 由 `catalog/repository-groups.yaml` 声明，只在目标 README 缺失时创建，不覆盖用户已有内容。
 
 完整规范见 [MANIFEST.yaml](MANIFEST.yaml) 和 [AGENTS.md](AGENTS.md)。
 

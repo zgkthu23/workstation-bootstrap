@@ -18,7 +18,8 @@
 3. 按 host 的 `profiles` 顺序完整读取 `profiles/<id>.yaml`。
 4. 读取 `catalog/bundles.yaml`，解析 bundle 引用。
 5. 读取 `catalog/tools.yaml`，解析工具、依赖和平台目标。
-6. 读取 `catalog/repositories.yaml`，解析项目组。
+6. 读取 `catalog/repository-groups.yaml`，解析项目组目录和 README。
+7. 读取 `catalog/repositories.yaml`，解析项目组中的仓库。
 
 所有活动 YAML 必须是 `schema_version: 2`，ID 必须为稳定的小写 kebab-case。未知 ID、重复 ID、重复仓库目标目录均在修改机器前报错。
 
@@ -57,6 +58,8 @@
 
 ### 仓库
 
+- `catalog/repository-groups.yaml` 是允许的顶层 group 清单；仓库引用未知 group 时在 mutation 前报错。README source 路径相对仓库根目录解析，必须存在且位于 `repository-groups/<group>/README.md`。
+- 为每个声明的 group 创建目录；README 仅在缺失时从声明的 source 复制，已有 README 永不覆盖。
 - profile 解析出的 `project_groups` 选择仓库，再应用 host project include/exclude。
 - clone 目标为 `repository_root/<group>/<directory>`；两个项目得到同一目标时报错。
 - URL 含 `PUT_YOUR_*` 时显示并跳过，不猜地址。
@@ -68,7 +71,7 @@
 1. resolve-and-show-plan       # 完整解析；所有错误必须在 mutation 前暴露
 2. configure-network          # 若解析到 network-client，先配置客户端与 proxy setting
 3. install-package-manager    # macOS: brew；Windows: winget；Ubuntu: apt
-4. create-directories         # 解析后的 workspace/data/scratch/repository 路径
+4. create-directories         # 解析后的根路径、repository group 目录及缺失的 group README
 5. install-tools              # 拓扑顺序；先检测后安装
 6. configure-secret-bindings  # 只配置声明的 process-only Keychain consumer binding
 7. clone-repositories         # 按解析顺序，排除和占位符已处理

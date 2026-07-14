@@ -1,6 +1,0 @@
-schema_version: 2
-id: experiments
-description: Experimental project selection
-bundles: []
-project_groups: [experiments]
-settings: {}

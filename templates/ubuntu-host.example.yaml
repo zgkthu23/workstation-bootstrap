@@ -11,7 +11,7 @@ platform:
   arch: x86_64
   environment: native
 
-profiles: [gfw-network, base, developer, research, server, work, experiments]
+profiles: [gfw-network, base, developer, research, server, work]
 
 paths:
   cloud_root: ~/cloud
@@ -21,7 +21,7 @@ overrides:
   tools: {include: [], exclude: []}
   projects:
     include: []
-    exclude: [experiments-misc]
+    exclude: []
   settings:
     git:
       user_name: PUT_YOUR_NAME

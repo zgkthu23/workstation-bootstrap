@@ -7,6 +7,7 @@ locations:
   profiles: profiles/*.yaml
   tools: catalog/tools.yaml
   bundles: catalog/bundles.yaml
+  repository_groups: catalog/repository-groups.yaml
   repositories: catalog/repositories.yaml
   templates: templates/
 
@@ -16,6 +17,7 @@ read_order:
   - selected-profiles
   - catalog/bundles.yaml
   - catalog/tools.yaml
+  - catalog/repository-groups.yaml
   - catalog/repositories.yaml
 
 defaults:
@@ -67,6 +69,8 @@ merge_rules:
     cycle: error
   repositories:
     select_by: resolved-project-groups
+    groups: declared-only
+    group_readme: create-if-missing-never-overwrite
     project_exclusions_win: true
     placeholder_url: report-and-skip
     duplicate_target_directory: error
