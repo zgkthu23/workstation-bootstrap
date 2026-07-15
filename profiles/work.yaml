@@ -1,6 +1,0 @@
-schema_version: 2
-id: work
-description: Work project selection
-bundles: []
-project_groups: [work]
-settings: {}

@@ -1,6 +1,0 @@
-schema_version: 2
-id: learning
-description: Learning projects and repositories studied from others
-bundles: []
-project_groups: [learning]
-settings: {}

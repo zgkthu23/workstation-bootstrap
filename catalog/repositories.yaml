@@ -1,94 +1,52 @@
 schema_version: 2
-id: repositories
 
 repositories:
-  - id: workstation-bootstrap
-    url: git@github.com:zgkthu23/workstation-bootstrap.git
-    group: personal
-    directory: workstation-bootstrap
-    optional: false
-    description: 个人工作站基础设施即代码
+  workstation-bootstrap:
+    url: https://github.com/zgkthu23/workstation-bootstrap.git
+    target: personal/workstation-bootstrap
+    description: Personal workstation configuration
 
-  - id: claude-config
-    url: git@github.com:zgkthu23/claude-config.git
-    group: personal
-    directory: claude-config
-    optional: false
-    description: Claude Code 配置
+  claude-config:
+    url: https://github.com/zgkthu23/claude-config.git
+    target: personal/claude-config
+    description: Claude Code and Codex configuration assets
 
-  - id: dotfiles
+  dotfiles:
     url: https://github.com/zgkthu23/dotfiles.git
-    group: personal
-    directory: dotfiles
-    optional: false
-    description: Chezmoi-managed cross-platform personal configuration
+    target: personal/dotfiles
+    description: Chezmoi-managed dotfiles
 
-  - id: cc-switch-source
+  cc-switch-source:
     url: https://github.com/farion1231/cc-switch.git
-    group: learning
-    directory: cc-switch
-    optional: false
+    target: learning/cc-switch
     description: CC Switch source code for study
 
-  - id: python-learning
+  python-learning:
     url: https://github.com/zgkthu23/python.git
-    group: learning
-    directory: python
-    optional: false
-    description: Python learning notes, exercises, and projects
+    target: learning/python
+    description: Python learning
 
-  - id: typescript-learning
+  typescript-learning:
     url: https://github.com/zgkthu23/typescript.git
-    group: learning
-    directory: typescript
-    optional: false
-    description: TypeScript learning notes, exercises, and projects
+    target: learning/typescript
+    description: TypeScript learning
 
-  - id: rust-learning
+  rust-learning:
     url: https://github.com/zgkthu23/rust.git
-    group: learning
-    directory: rust
-    optional: false
-    description: Rust learning notes, exercises, and projects
+    target: learning/rust
+    description: Rust learning
 
-  - id: react-learning
+  react-learning:
     url: https://github.com/zgkthu23/react.git
-    group: learning
-    directory: react
-    optional: false
-    description: React learning notes, exercises, and applications
+    target: learning/react
+    description: React learning
 
-  - id: sql-learning
+  sql-learning:
     url: https://github.com/zgkthu23/sql.git
-    group: learning
-    directory: sql
-    optional: false
-    description: SQL learning notes, queries, exercises, and projects
+    target: learning/sql
+    description: SQL learning
 
-  - id: mygit
-    url: git@github.com:zgkthu23/mygit.git
-    group: tools
-    directory: mygit
-    optional: true
-    description: Python 实现的 git 内部原理
-
-  - id: zip-cracker
-    url: git@github.com:zgkthu23/ZipCracker.git
-    group: tools
-    directory: ZipCracker
-    optional: true
-    description: CTF 用 Zip 密码破解工具
-
-  - id: get-promax-gui
+  get-promax-gui:
     url: https://github.com/CreateEnergyTech/get_promax-gui.git
-    group: work
-    directory: get_promax-gui
-    optional: false
-    description: BestSeller 供应商门户订单下载、PDF 后处理与翻译的 GUI/CLI 自动化工具
-
-  - id: research-lwfa
-    url: PUT_YOUR_LWFA_REPO_URL
-    group: research
-    directory: lwfa
-    optional: true
-    description: LWFA 研究项目
+    target: work/get_promax-gui
+    description: BestSeller order-download and PDF-processing application

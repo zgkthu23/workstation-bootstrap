@@ -1,98 +1,20 @@
 schema_version: 2
 id: workstation-bootstrap
-description: Declarative, agent-executed workstation configuration
+description: Simple declarative workstation setup
 
-locations:
+files:
   hosts: hosts/*.yaml
-  profiles: profiles/*.yaml
   tools: catalog/tools.yaml
-  bundles: catalog/bundles.yaml
-  repository_groups: catalog/repository-groups.yaml
   repositories: catalog/repositories.yaml
-  templates: templates/
 
-read_order:
-  - MANIFEST.yaml
-  - selected-host
-  - selected-profiles
-  - catalog/bundles.yaml
-  - catalog/tools.yaml
-  - catalog/repository-groups.yaml
-  - catalog/repositories.yaml
-
-defaults:
-  paths:
-    workspace_root: ~/workspace
-    data_root: ~/data
-    scratch_root: ~/scratch
-    repository_root: ~/workspace/repos
-
-platform:
-  required_fields: [os, arch]
-  optional_fields: [distro, environment]
-  values:
-    os: [linux, macos, windows]
-    distro: extensible-lowercase-kebab-case
-    arch: [arm64, x86_64]
-    environment: [native, wsl]
-
-merge_rules:
-  host_selection:
-    rule: exactly-one-hostname-match
-    canonical_hostname:
-      macos: scutil-local-host-name-dot-local
-      linux: hostname
-      windows: computername-environment
-    on_zero_matches: stop-and-ask
-    on_multiple_matches: stop-and-ask
-  profiles:
-    order: host-list-order
-    collections: stable-union
-    settings: conflict-is-error-unless-host-overrides
-  overrides:
-    order:
-      - profile-union
-      - host-includes
-      - host-excludes
-    exclusions_win: true
-    required_tool_wins_over_optional: true
-  tool_targets:
-    match: most-specific-compatible-when
-    specificity: number-of-fields-in-when
-    equal_specificity: error
-    missing_required_target: error-before-mutation
-    missing_optional_target: report-and-skip
-    explicit_unsupported: report-and-skip
-  dependencies:
-    deduplicate: true
-    order: topological
-    cycle: error
-  repositories:
-    select_by: resolved-project-groups
-    groups: declared-only
-    group_readme: create-if-missing-never-overwrite
-    project_exclusions_win: true
-    placeholder_url: report-and-skip
-    duplicate_target_directory: error
-    target: "{repository_root}/{group}/{directory}"
-
-execution:
-  declaration_only: true
-  require_complete_plan_before_mutation: true
-  idempotent: true
+rules:
+  show_plan_before_changes: true
+  install_only_if_missing: true
+  clone_only_if_missing: true
+  package_channel: provider-stable
   secrets_in_repository: forbidden
-  tool_detection:
-    existing_satisfies: verify-success-or-platform-presence
-    declared_integrity_checks: required
-    provider_role: install-missing-only
-    reinstall_on_provider_mismatch: false
-    version_output: informational
-    channel_role: fresh-install-preference
-    reconcile_existing_channel: false
-  secret_handling:
-    allowed_backends: [macos-keychain]
-    repository_values: forbidden
-    retrieval_output: forbidden
-    exposure: process-only
-    global_environment_export: forbidden
-    duplicate_credential_store: forbidden
+  templates_are_reference_only: true
+
+secrets:
+  backend: macos-keychain
+  shell_export_on_personal_hosts: allowed

@@ -1,0 +1,17 @@
+schema_version: 2
+id: example-machine
+description: Example workstation
+
+hostnames: [example-hostname]
+platform: macos
+arch: arm64
+
+paths:
+  workspace: ~/workspace
+  data: ~/data
+  scratch: ~/scratch
+  repositories: ~/workspace/repos
+
+tools: [git, github-cli, chezmoi]
+repositories: [workstation-bootstrap, dotfiles]
+settings: {}
