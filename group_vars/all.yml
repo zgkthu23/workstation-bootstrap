@@ -1,0 +1,8 @@
+---
+# Directories created under each user's home directory on every host.
+home_subdirs:
+  - workspace/personal
+  - workspace/learning
+  - workspace/work
+  - workspace/research
+  - data

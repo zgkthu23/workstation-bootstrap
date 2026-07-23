@@ -1,0 +1,6 @@
+---
+- name: Create home subdirectories (Windows)
+  ansible.windows.win_file:
+    path: "{{ ansible_facts.env.USERPROFILE }}/{{ item }}"
+    state: directory
+  loop: "{{ home_subdirs }}"

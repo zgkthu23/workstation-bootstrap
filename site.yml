@@ -1,0 +1,6 @@
+---
+- name: Ensure consistent home folder structure across all hosts
+  hosts: all
+  gather_facts: true
+  roles:
+    - directories

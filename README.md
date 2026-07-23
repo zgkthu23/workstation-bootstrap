@@ -1,40 +1,44 @@
 # Workstation Bootstrap
 
-Simple declarative configuration for personal development workstations. An agent reads the files, shows a plan, waits for approval, and performs only missing work.
+Ansible project to configure personal development workstations across macOS, Windows, and Linux over a Tailscale mesh.
 
-## Structure
+## Control node
 
-```text
-MANIFEST.yaml                 file locations and global rules
-hosts/<machine>.yaml          everything selected for one machine
-catalog/tools.yaml            platform installation mappings
-catalog/repositories.yaml     repository URLs and target folders
-repository-groups/*/README.md folder-purpose descriptions
-templates/host.example.yaml   reference for adding a machine
+The Mac (`guangkuos-macbook-air`) runs Ansible and pushes to the other hosts over Tailscale. Ansible [core] 2.18+ is required for SSH-to-Windows support (installed: 2.21.2).
+
+## Setup
+
+```bash
+ansible-galaxy collection install -r requirements.yml
 ```
 
-There are no profiles, bundles, merge layers, bootstrap scripts, or version validators. A host lists its tools and repositories directly; catalogs use those IDs as YAML keys.
+## Hosts
 
-## Add a workstation
+| Inventory name | Platform | Connection |
+|---|---|---|
+| guangkuos-macbook-air | macOS | local |
+| desktop-317 | Windows | ssh (pwsh) |
+| ubuntu-vps | Linux | ssh |
 
-Copy the shape of `templates/host.example.yaml` into `hosts/<name>.yaml`, add its real hostname, and directly list the required tools and repositories. Add missing installation mappings or repository definitions to the catalogs.
+## Run
 
-Tools follow the package provider's stable release. Existing commands or applications satisfy the declaration and are not reinstalled.
+```bash
+# Connectivity check (builtin.ping needs Python on the remote, so Windows
+# uses win_ping, which runs over PowerShell):
+ansible macos,linux -m ansible.builtin.ping
+ansible windows -m ansible.windows.win_ping
 
-## Secrets
+ansible-playbook site.yml    # apply configuration
+```
 
-Never commit a token, password, API key, or private key. This Mac stores secrets in macOS Keychain and may load them from Keychain in `.zshrc` for convenience.
+## Current scope
 
-Tavily uses Keychain service `tavily-api-key` and environment variable `TAVILY_API_KEY`. Claude Code and its Tavily MCP inherit the variable. CC Switch stores only non-secret MCP configuration.
+Phase 1 creates a consistent home-directory layout on every host:
 
-GitHub CLI uses Keychain service `github-cli-gh-token` when process-level token access is needed. Prefer `gh auth login` for normal GitHub CLI authentication.
+- `~/workspace/personal`
+- `~/workspace/learning`
+- `~/workspace/work`
+- `~/workspace/research`
+- `~/data`
 
-## Repository folders
-
-- `personal`: configuration and personal projects
-- `learning`: programming exercises and source repositories being studied
-- `tools`: reusable utilities
-- `work`: work projects
-- `research`: research projects
-
-Repositories are cloned to `~/workspace/repos/<group>/<directory>`. Existing directories are left untouched.
+Later phases add tool installation, repository cloning, dotfiles, and secrets.

@@ -1,0 +1,8 @@
+---
+- name: Create home subdirectories on Unix hosts
+  ansible.builtin.include_tasks: unix.yml
+  when: ansible_os_family != "Windows"
+
+- name: Create home subdirectories on Windows hosts
+  ansible.builtin.include_tasks: windows.yml
+  when: ansible_os_family == "Windows"
