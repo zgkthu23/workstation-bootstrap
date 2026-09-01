@@ -1,0 +1,31 @@
+name: MSYS2 Internals Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lab:
+    runs-on: windows-2025
+
+    steps:
+      - name: Windows baseline
+        shell: pwsh
+        run: |
+          Write-Host "=== Native Windows ==="
+          whoami
+          $PSVersionTable
+          Get-ComputerInfo |
+            Select-Object WindowsProductName, OsArchitecture
+
+          Write-Host "`n=== MSYS2 already on runner? ==="
+          Test-Path C:\msys64
+      - name: Setup MSYS2
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: >-
+            file
+            procps-ng
+            mingw-w64-ucrt-x86_64-gcc
