@@ -62,5 +62,10 @@ jobs:
           echo "=== imported DLLs ==="
           objdump -p hello.exe |
             grep 'DLL Name'
+      - name: Run without MSYS2 shell
+        shell: pwsh
+        run: |
+          Write-Host "Now I am back in native PowerShell"
 
+          & "$env:GITHUB_WORKSPACE\hello.exe"
 
