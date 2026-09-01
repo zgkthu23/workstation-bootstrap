@@ -1,0 +1,32 @@
+name: Build Windows app
+on:
+  workflow_dispatch:
+
+jobs:
+  explore-windows:
+    runs-on: windows-latest
+    steps:
+      - name: PowerShell
+        shell: pwsh
+        run: |
+          Write-Host "PowerShell"
+          Write-Host $env:PATH
+
+      - name: CMD
+        shell: cmd
+        run: |
+          echo CMD
+          echo %PATH%
+
+      - name: Bash
+        shell: bash
+        run: |
+          echo "Bash"
+          echo "$PATH"
+
+      - name: Python
+        shell: python
+        run: |
+          import os
+          print("Python")
+          print(os.environ["PATH"])
