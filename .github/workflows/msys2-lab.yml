@@ -29,3 +29,21 @@ jobs:
             file
             procps-ng
             mingw-w64-ucrt-x86_64-gcc
+      - name: Enter MSYS2
+        shell: msys2 {0}
+        run: |
+          echo "MSYSTEM=$MSYSTEM"
+
+          uname -a
+
+          echo
+          echo "bash:"
+          which bash
+
+          echo
+          echo "ls:"
+          which ls
+
+          echo
+          echo "gcc:"
+          which gcc
