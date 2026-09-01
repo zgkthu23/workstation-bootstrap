@@ -11,6 +11,26 @@ jobs:
         run: |
           Write-Host "PowerShell"
           Write-Host $env:PATH
+          Get-Command python
+          python --version
+
+          Get-Command git
+          git --version
+
+          Get-Command cmake
+          cmake --version
+
+          Get-Command rustc
+          rustc --version
+
+          Get-Command gcc
+          gcc --version
+
+          Get-Command bash
+          Get-Command choco
+          Get-ChildItem HKLM:\SOFTWARE | Select-Object -First 20
+
+          Get-ChildItem HKCU:\Software | Select-Object -First 20
 
       - name: CMD
         shell: cmd
