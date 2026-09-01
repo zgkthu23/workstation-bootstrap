@@ -1,0 +1,16 @@
+name: VM Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  explore:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Hello VM
+        run: |
+          echo "Hello from GitHub Actions"
+          uname -a
+          whoami
+          pwd
