@@ -2,6 +2,7 @@ name: MSYS2 Internals Lab
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   lab:
