@@ -8,8 +8,6 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
       - name: Basic system information
         run: |
           echo "===== IDENTITY ====="
@@ -28,33 +26,6 @@ jobs:
           echo
           echo "===== MEMORY ====="
           free -h
-
-      - name: Important environment variables
-        run: |
-          echo "HOME=$HOME"
-          echo "USER=$USER"
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "RUNNER_OS=$RUNNER_OS"
-          echo "RUNNER_ARCH=$RUNNER_ARCH"
-          echo "RUNNER_TEMP=$RUNNER_TEMP"
-          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
-
-      - name: Filesystem before checkout
-        run: |
-          pwd
-          ls -lah /
-          echo
-          ls -lah "$HOME"
-          echo
-          ls -lah "$GITHUB_WORKSPACE"
-          echo
-          df -hT
-
-      - name: Process tree before checkout
-        run: |
-          echo "Current shell PID=$$"
-          ps -eo pid,ppid,user,stat,comm,args --forest
-
       - name: Checkout repository
         uses: actions/checkout@v6
 
