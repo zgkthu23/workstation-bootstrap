@@ -1,0 +1,19 @@
+[project]
+name = "workstation-bootstrap"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "zgkthu23", email = "zgkthu23@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pyinstaller>=6.22.2",
+]
+
+[project.scripts]
+workstation-bootstrap = "workstation_bootstrap:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"

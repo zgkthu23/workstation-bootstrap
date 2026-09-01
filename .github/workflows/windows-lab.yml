@@ -6,6 +6,7 @@ jobs:
   explore-windows:
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
@@ -13,6 +14,12 @@ jobs:
           enable-cache: true
       - name: Check uv
         run: |
+          uv python install 3.14
           uv python list
           uv cache dir
+          uv sync
 
+      - name: Check current folder
+        run: |
+          pwd
+          ls
