@@ -47,3 +47,9 @@ jobs:
           echo
           echo "gcc:"
           which gcc
+          ls -la ~
+          file /usr/bin/ls
+          ls /
+          ls /proc | head
+          echo $$
+
