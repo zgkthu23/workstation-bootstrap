@@ -8,11 +8,115 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Hello VM
+      - name: Basic system information
         run: |
-          echo "Hello from GitHub Actions"
-          uname -a
+          echo "===== IDENTITY ====="
           whoami
+          id
+
+          echo
+          echo "===== OS ====="
+          cat /etc/os-release
+          uname -a
+
+          echo
+          echo "===== CPU ====="
+          lscpu | head -30
+
+          echo
+          echo "===== MEMORY ====="
+          free -h
+
+      - name: Important environment variables
+        run: |
+          echo "HOME=$HOME"
+          echo "USER=$USER"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "RUNNER_OS=$RUNNER_OS"
+          echo "RUNNER_ARCH=$RUNNER_ARCH"
+          echo "RUNNER_TEMP=$RUNNER_TEMP"
+          echo "RUNNER_TOOL_CACHE=$RUNNER_TOOL_CACHE"
+
+      - name: Filesystem before checkout
+        run: |
           pwd
-          lscpu
-          ls -la /
+          ls -lah /
+          echo
+          ls -lah "$HOME"
+          echo
+          ls -lah "$GITHUB_WORKSPACE"
+          echo
+          df -hT
+
+      - name: Process tree before checkout
+        run: |
+          echo "Current shell PID=$$"
+          ps -eo pid,ppid,user,stat,comm,args --forest
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Filesystem after checkout
+        run: |
+          pwd
+          find "$GITHUB_WORKSPACE" -maxdepth 2 -print | head -100
+
+      - name: Process experiment
+        run: |
+          echo "Bash PID=$$"
+
+          python - <<'PY' &
+          import os
+          import time
+
+          print("Python PID =", os.getpid(), flush=True)
+          print("Python PPID =", os.getppid(), flush=True)
+          time.sleep(5)
+          PY
+
+          child=$!
+
+          sleep 1
+
+          ps -o pid,ppid,user,comm,args -p $$ -p "$child"
+          echo
+          ps -eo pid,ppid,user,comm,args --forest
+
+          wait "$child"
+
+      - name: Environment inheritance
+        run: |
+          export FROM_BASH="hello"
+
+          python - <<'PY'
+          import os
+
+          print("PID =", os.getpid())
+          print("PPID =", os.getppid())
+          print("FROM_BASH =", os.environ["FROM_BASH"])
+          PY
+
+      - name: Write environment for later step
+        run: |
+          export LOCAL_ONLY="temporary"
+          echo "PERSISTENT_VAR=hello-from-runner" >> "$GITHUB_ENV"
+
+      - name: Observe next-step environment
+        run: |
+          echo "LOCAL_ONLY=${LOCAL_ONLY:-<missing>}"
+          echo "PERSISTENT_VAR=$PERSISTENT_VAR"
+
+      - name: Inspect mounts
+        run: |
+          lsblk
+          echo
+          findmnt | head -50
+
+      - name: Inspect tools
+        run: |
+          python --version
+          gcc --version | head -1
+          gfortran --version | head -1
+          clang --version | head -1
+          rustc --version
+          docker --version
