@@ -6,9 +6,16 @@ jobs:
   explore-windows:
     runs-on: windows-latest
     steps:
-      - name: Hello Windows
+      - name: Inspect OS
         run: |
-          Write-Host "Hello from Windows runner"
+          Write-Host "===== USER ====="
           whoami
-          Get-Location
-          $PSVersionTable
+          Write-Host "`n===== WINDOWS ====="
+          Get-ComputerInfo |
+          Select-Object WindowsProductName,
+                        WindowsVersion,
+                        OsArchitecture
+
+          Write-Host "`n===== ENVIRONMENT ====="
+          Write-Host "RUNNER_OS=$env:RUNNER_OS"
+          Write-Host "RUNNER_ARCH=$env:RUNNER_ARCH"
