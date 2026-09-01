@@ -41,16 +41,26 @@ jobs:
           echo "bash:"
           which bash
 
-          echo
-          echo "ls:"
-          which ls
+      - name: Build native Windows program
+        shell: msys2 {0}
+        run: |
+          cat > hello.c <<'EOF'
+          #include <stdio.h>
+
+          int main(void) {
+              printf("Hello from native Windows!\n");
+              return 0;
+          }
+          EOF
+
+          gcc hello.c -o hello.exe
+
+          echo "=== resulting binary ==="
+          file hello.exe
 
           echo
-          echo "gcc:"
-          which gcc
-          ls -la ~
-          file /usr/bin/ls
-          ls /
-          ls /proc | head
-          echo $$
+          echo "=== imported DLLs ==="
+          objdump -p hello.exe |
+            grep 'DLL Name'
+
 
